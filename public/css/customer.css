@@ -1,0 +1,8 @@
+.product-tools{
+	text-align: center;
+	margin-top: 10px;
+}
+
+.product-tools > a > i{
+	font-size: 25px;
+}

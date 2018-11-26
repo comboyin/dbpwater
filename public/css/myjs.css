@@ -1,0 +1,12 @@
+.shop-product{
+	min-height: 450px;
+}
+.product-image{
+	height: 370px;
+}
+.list-friend{
+	padding-left: 60px;
+}
+.list-friend .media p{
+	line-height: 5;
+}
