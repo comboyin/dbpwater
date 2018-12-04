@@ -7,8 +7,10 @@ $config = array (
 				'db_password' => 'btwn2',
 				'db_dbname' => 'minh_nhut_lession_3' */
 				'db_servername' => "localhost",
-				'db_username'   => 'root',
-				'db_password'   => 'lampart',
+//				'db_username'   => 'root',
+//				'db_password'   => 'lampart',
+                'db_username'   => 'root',
+                'db_password'   => '',
 				'db_dbname'     => 'nbook'
 		),
 
@@ -36,6 +38,12 @@ $config = array (
 						),
 						'default' => 'layout/loginLayout'
 				),
+                'importdb/index' => array(
+                    'actions'=>array(
+
+                    ),
+                    'default' => 'layout/importdbLayout'
+                ),
 				'user/index' => array(
 						'actions' => array(
 
@@ -68,6 +76,11 @@ $config = array (
 								"all" => "all"
 							),
 						),
+                        "importdb"=>array(
+                            "index" => array(
+                                "all" => "all"
+                            ),
+                        ),
 						"error" => array(
 							"error404" => array(
 								"all" => "all"

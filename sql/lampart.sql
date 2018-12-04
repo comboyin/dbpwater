@@ -10,6 +10,55 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
+-- Dumping structure for table minh_nhut_lession_3.group
+CREATE TABLE IF NOT EXISTS `group` (
+  `id` int(10) NOT NULL auto_increment,
+  `level` tinyint(1) NOT NULL default '3',
+  `name` varchar(50) collate utf8_unicode_ci NOT NULL default '',
+  `regist_datetime` datetime NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- Dumping data for table minh_nhut_lession_3.group: ~1 rows (approximately)
+/*!40000 ALTER TABLE `group` DISABLE KEYS */;
+INSERT INTO `group` (`id`, `level`, `name`, `regist_datetime`) VALUES
+	(1, 1, 'Admin', '2015-10-15 10:23:31'),
+	(2, 3, 'User', '2015-10-26 15:15:03');
+/*!40000 ALTER TABLE `group` ENABLE KEYS */;
+
+-- Dumping structure for table minh_nhut_lession_3.user
+CREATE TABLE IF NOT EXISTS `user` (
+  `id` int(10) NOT NULL auto_increment,
+  `username` varchar(40) collate utf8_unicode_ci NOT NULL,
+  `password` varchar(32) collate utf8_unicode_ci NOT NULL,
+  `fullname` varchar(32) collate utf8_unicode_ci NOT NULL,
+  `sex` tinyint(1) NOT NULL default '1',
+  `birthday` date default NULL,
+  `address` varchar(255) collate utf8_unicode_ci NOT NULL default '',
+  `introduction` text collate utf8_unicode_ci NOT NULL,
+  `avatar` varchar(255) collate utf8_unicode_ci NOT NULL,
+  `email` varchar(40) collate utf8_unicode_ci NOT NULL default '',
+  `group_id` int(10) NOT NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `username` (`username`),
+  KEY `FK_user_group` (`group_id`),
+  CONSTRAINT `FK_user_group` FOREIGN KEY (`group_id`) REFERENCES `group` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- Dumping data for table minh_nhut_lession_3.user: ~2 rows (approximately)
+/*!40000 ALTER TABLE `user` DISABLE KEYS */;
+INSERT INTO `user` (`id`, `username`, `password`, `fullname`, `sex`, `birthday`, `address`, `introduction`, `avatar`, `email`, `group_id`) VALUES
+	(1, 'comboyin', 'e10adc3949ba59abbe56e057f20f883e', 'Trần Minh Nhựt', 1, '2014-01-01', '61 nguyen trai', 'asd asjnsdf dsajkfb dskafbsdjabf jksdabf kjsdbfk jbsdfkj bdsakjf bsdjkfabsjdka bfasdkj bfksjadfb askjdfb k', 'administrator562df010ec4cd.png', 'trannhut031192@gmail.com', 1),
+	(2, 'comboyinA', 'e10adc3949ba59abbe56e057f20f883e', 'Lê văn tám mươi chín', 1, '2015-10-23', 'asda sdas dasd', ' asd asd as fsdagdg afdg fdagfd gdfgg', '14321203052562a063dc2c6c.jpg', 'asdasdasdas@gmail.com', 2),
+	(3, 'sontung', 'e10adc3949ba59abbe56e057f20f883e', 'Sơn Tùng MTP', 1, '1992-01-01', 'Thái Bình', 'jh sdfbjhasdv fjhdsvaf jhsadvfjhasv', '2015-10-26_154102562de70cc8fdd.jpg', 'sontung@gmail.com', 2),
+	(4, 'camly', 'e10adc3949ba59abbe56e057f20f883e', 'Cẩm Ly', 0, '1980-01-01', 'Đồng tháp', 'asdasdasd asdad asd a', 'cam-ly-2562de896830c8.jpg', 'camly@gmail.com', 2),
+	(5, 'khoimy', 'e10adc3949ba59abbe56e057f20f883e', 'Khởi my', 0, '1992-10-26', 'Ở đâu', 'ádasdasdasdasda', 'dasdasdasdasda.jpg', 'đâsdasđ@gmail.com', 2),
+	(6, 'miule', 'e10adc3949ba59abbe56e057f20f883e', 'miu lê', 0, '1981-10-26', 'An giang', 'ádasdaskbdaksjbdakjs', '2015-10-26_152632562de3a15ebe5.jpg', 'miule@gmail.com', 2);
+/*!40000 ALTER TABLE `user` ENABLE KEYS */;
+/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
+/*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+
 -- Dumping structure for table minh_nhut_lession_3.favorite
 CREATE TABLE IF NOT EXISTS `favorite` (
   `id` int(10) NOT NULL auto_increment,
@@ -86,41 +135,6 @@ CREATE TABLE IF NOT EXISTS `friend_request` (
 /*!40000 ALTER TABLE `friend_request` DISABLE KEYS */;
 /*!40000 ALTER TABLE `friend_request` ENABLE KEYS */;
 
-
--- Dumping structure for table minh_nhut_lession_3.group
-CREATE TABLE IF NOT EXISTS `group` (
-  `id` int(10) NOT NULL auto_increment,
-  `level` tinyint(1) NOT NULL default '3',
-  `name` varchar(50) collate utf8_unicode_ci NOT NULL default '',
-  `regist_datetime` datetime NOT NULL,
-  PRIMARY KEY  (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- Dumping data for table minh_nhut_lession_3.group: ~1 rows (approximately)
-/*!40000 ALTER TABLE `group` DISABLE KEYS */;
-INSERT INTO `group` (`id`, `level`, `name`, `regist_datetime`) VALUES
-	(1, 1, 'Admin', '2015-10-15 10:23:31'),
-	(2, 3, 'User', '2015-10-26 15:15:03');
-/*!40000 ALTER TABLE `group` ENABLE KEYS */;
-
-
--- Dumping structure for table minh_nhut_lession_3.like
-CREATE TABLE IF NOT EXISTS `like` (
-  `id` int(10) NOT NULL auto_increment,
-  `user_id` int(10) NOT NULL,
-  `pictures_id` int(10) NOT NULL,
-  PRIMARY KEY  (`id`,`user_id`,`pictures_id`),
-  KEY `FK_like_user` (`user_id`),
-  KEY `FK_like_pictures` (`pictures_id`),
-  CONSTRAINT `FK_like_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
-  CONSTRAINT `FK_like_pictures` FOREIGN KEY (`pictures_id`) REFERENCES `picture` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- Dumping data for table minh_nhut_lession_3.like: ~0 rows (approximately)
-/*!40000 ALTER TABLE `like` DISABLE KEYS */;
-/*!40000 ALTER TABLE `like` ENABLE KEYS */;
-
-
 -- Dumping structure for table minh_nhut_lession_3.message_log
 CREATE TABLE IF NOT EXISTS `message_log` (
   `id` int(10) NOT NULL auto_increment,
@@ -196,35 +210,18 @@ INSERT INTO `picture` (`id`, `url`, `view`, `like_number`, `regist_datetime`, `u
 /*!40000 ALTER TABLE `picture` ENABLE KEYS */;
 
 
--- Dumping structure for table minh_nhut_lession_3.user
-CREATE TABLE IF NOT EXISTS `user` (
+-- Dumping structure for table minh_nhut_lession_3.like
+CREATE TABLE IF NOT EXISTS `like` (
   `id` int(10) NOT NULL auto_increment,
-  `username` varchar(40) collate utf8_unicode_ci NOT NULL,
-  `password` varchar(32) collate utf8_unicode_ci NOT NULL,
-  `fullname` varchar(32) collate utf8_unicode_ci NOT NULL,
-  `sex` tinyint(1) NOT NULL default '1',
-  `birthday` date default NULL,
-  `address` varchar(255) collate utf8_unicode_ci NOT NULL default '',
-  `introduction` text collate utf8_unicode_ci NOT NULL,
-  `avatar` varchar(255) collate utf8_unicode_ci NOT NULL,
-  `email` varchar(40) collate utf8_unicode_ci NOT NULL default '',
-  `group_id` int(10) NOT NULL,
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `username` (`username`),
-  KEY `FK_user_group` (`group_id`),
-  CONSTRAINT `FK_user_group` FOREIGN KEY (`group_id`) REFERENCES `group` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  `user_id` int(10) NOT NULL,
+  `pictures_id` int(10) NOT NULL,
+  PRIMARY KEY  (`id`,`user_id`,`pictures_id`),
+  KEY `FK_like_user` (`user_id`),
+  KEY `FK_like_pictures` (`pictures_id`),
+  CONSTRAINT `FK_like_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
+  CONSTRAINT `FK_like_pictures` FOREIGN KEY (`pictures_id`) REFERENCES `picture` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
--- Dumping data for table minh_nhut_lession_3.user: ~2 rows (approximately)
-/*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` (`id`, `username`, `password`, `fullname`, `sex`, `birthday`, `address`, `introduction`, `avatar`, `email`, `group_id`) VALUES
-	(1, 'comboyin', 'e10adc3949ba59abbe56e057f20f883e', 'Trần Minh Nhựt', 1, '2014-01-01', '61 nguyen trai', 'asd asjnsdf dsajkfb dskafbsdjabf jksdabf kjsdbfk jbsdfkj bdsakjf bsdjkfabsjdka bfasdkj bfksjadfb askjdfb k', 'administrator562df010ec4cd.png', 'trannhut031192@gmail.com', 1),
-	(2, 'comboyinA', 'e10adc3949ba59abbe56e057f20f883e', 'Lê văn tám mươi chín', 1, '2015-10-23', 'asda sdas dasd', ' asd asd as fsdagdg afdg fdagfd gdfgg', '14321203052562a063dc2c6c.jpg', 'asdasdasdas@gmail.com', 2),
-	(3, 'sontung', 'e10adc3949ba59abbe56e057f20f883e', 'Sơn Tùng MTP', 1, '1992-01-01', 'Thái Bình', 'jh sdfbjhasdv fjhdsvaf jhsadvfjhasv', '2015-10-26_154102562de70cc8fdd.jpg', 'sontung@gmail.com', 2),
-	(4, 'camly', 'e10adc3949ba59abbe56e057f20f883e', 'Cẩm Ly', 0, '1980-01-01', 'Đồng tháp', 'asdasdasd asdad asd a', 'cam-ly-2562de896830c8.jpg', 'camly@gmail.com', 2),
-	(5, 'khoimy', 'e10adc3949ba59abbe56e057f20f883e', 'Khởi my', 0, '1992-10-26', 'Ở đâu', 'ádasdasdasdasda', 'dasdasdasdasda.jpg', 'đâsdasđ@gmail.com', 2),
-	(6, 'miule', 'e10adc3949ba59abbe56e057f20f883e', 'miu lê', 0, '1981-10-26', 'An giang', 'ádasdaskbdaksjbdakjs', '2015-10-26_152632562de3a15ebe5.jpg', 'miule@gmail.com', 2);
-/*!40000 ALTER TABLE `user` ENABLE KEYS */;
-/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
-/*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+-- Dumping data for table minh_nhut_lession_3.like: ~0 rows (approximately)
+/*!40000 ALTER TABLE `like` DISABLE KEYS */;
+/*!40000 ALTER TABLE `like` ENABLE KEYS */;

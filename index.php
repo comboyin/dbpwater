@@ -2,7 +2,7 @@
 
 /*** error reporting on ***/
  error_reporting(E_ALL);
-
+//phpinfo();
  /*** define the site path ***/
  $site_path = realpath(dirname(__FILE__));
  define ('__SITE_PATH', $site_path);
@@ -13,8 +13,9 @@
 */
 
 
-  define ( '__DOMAIN' , 'http://172.16.100.101' );
-  define ('__FOLDER', '/MVC/');
+ //define ( '__DOMAIN' , 'http://172.16.100.101' );
+  define ( '__DOMAIN' , 'http://localhost:88' );
+  define ('__FOLDER', '/dbpwater/');
   
  define ('__FOLDER_UPLOADS', 'uploads');
 

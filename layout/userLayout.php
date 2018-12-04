@@ -351,7 +351,7 @@ $user = $_SESSION['acl']['account'];
 						</div>
 					</div>
 			<!--=============================END DIALOG CHANGE AVATAR================================================-->
-
+CCCCCCCCCC
 			<?php echo $content->render()?>
 	</div>
 
