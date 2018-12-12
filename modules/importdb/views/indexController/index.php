@@ -16,47 +16,51 @@
 ?>
 
     <div class="module">
+        <div class="clearfix" id="result"></div>
         <div class="form row">
             <div class="col-md-6 col-md-offset-3">
                 <form id="importDB" method="post" action="" >
                     <div class="form-group row">
                         <label for="ip" class="col-sm-2 col-form-label">IP</label>
                         <div class="col-sm-10">
-                            <input type="text"  class="form-control" id="ip" name="ip" value="">
+                            <input type="text" required class="form-control" id="ip" name="ip" value="">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="user" class="col-sm-2 col-form-label">User</label>
                         <div class="col-sm-10">
-                            <input type="text" class="form-control" id="user" name="user" placeholder="">
+                            <input type="text" required class="form-control" id="user" name="user" placeholder="">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="password" class="col-sm-2 col-form-label">Password</label>
                         <div class="col-sm-10">
-                            <input type="password" class="form-control" id="password" name="password" placeholder="">
+                            <input type="password" required class="form-control" id="password" name="password" placeholder="">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="dbname" class="col-sm-2 col-form-label">DB name</label>
                         <div class="col-sm-10">
-                            <input type="text" class="form-control" id="dbname" name="user" placeholder="">
+                            <input type="text" required class="form-control" id="dbname" name="dbname" placeholder="">
                         </div>
                     </div>
                     <span class="note">Note: DB will drop if exists, all data will delete</span>
                     <div class="form-group row">
                         <div class="col-sm-12">
                             <select class="form-control" id="env" name="env">
-                                <option disabled="disabled" selected value="">Select</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
+                                <option disabled="disabled" selected value="">Select environment</option>
+                                <option value="dev">Dev</option>
+                                <option value="pre">Pre</option>
+                                <option  value="debug1">Debug 1</option>
+                                <option  value="debug2">Debug 2</option>
+                                <option  value="debug3">Debug 3</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-group row">
                         <div class="col-sm-offset-2 col-sm-10 submit-wrapper">
                             <button type="button" class="btn btn-default btn-import" value="submit">Import</button>
+<!--                            <button type="submit" class="btn btn-default btn-import" value="submit">Import</button>-->
                         </div>
                     </div>
                 </form>
@@ -79,7 +83,13 @@
                         </div>
                     </div>
                 </div>
-                <div id="result"></div>
+
             </div>
+        </div>
+    </div>
+    <div class="overlay">
+        <div class="loading-image">
+            <img src="public/img/loading1.gif" >
+            <p>Please wait!</p>
         </div>
     </div>

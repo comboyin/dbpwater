@@ -7,10 +7,11 @@ $config = array (
 				'db_password' => 'btwn2',
 				'db_dbname' => 'minh_nhut_lession_3' */
 				'db_servername' => "localhost",
+				//'db_servername' => "172.16.49.2",
 //				'db_username'   => 'root',
-//				'db_password'   => 'lampart',
+				'db_password'   => 'lampart',
                 'db_username'   => 'root',
-                'db_password'   => '',
+                //'db_password'   => '',
 				'db_dbname'     => 'nbook'
 		),
 

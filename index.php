@@ -2,6 +2,9 @@
 
 /*** error reporting on ***/
  error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ERROR | E_PARSE);
 //phpinfo();
  /*** define the site path ***/
  $site_path = realpath(dirname(__FILE__));
@@ -14,8 +17,10 @@
 
 
  //define ( '__DOMAIN' , 'http://172.16.100.101' );
-  define ( '__DOMAIN' , 'http://localhost:88' );
-  define ('__FOLDER', '/dbpwater/');
+  //define ( '__DOMAIN' , 'http://localhost:88' );
+  define ( '__DOMAIN' , 'http://dbpwater.com.vn/' );
+  //define ('__FOLDER', '/dbpwater/');
+  define ('__FOLDER', '/');
   
  define ('__FOLDER_UPLOADS', 'uploads');
 
@@ -25,7 +30,7 @@
  /*** include the init.php file ***/
  include  __SITE_PATH.'/includes/init.php';
 
- include  __SITE_PATH.'/simple-php-captcha/simple-php-captcha.php';
+// include  __SITE_PATH.'/simple-php-captcha/simple-php-captcha.php';
 
  /*** include the entity file ***/
 
