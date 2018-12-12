@@ -81,6 +81,12 @@ jQuery(document).ready(function($){
                     var errorMessage = xhr.status + ': ' + xhr.statusText
                     //alert('Error - ' + errorMessage);
                     alert('Something went wrong ' + status + ' - ' + error);
+                    msg = '<div class="alert alert-danger alert-dismissible">' +
+                        '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>' +
+                            'Something went wrong ' + status + ' - ' + error +
+                        '</strong></div>';
+                    $("#result").html(msg);
+                    $('.overlay').hide();
                 }
             });
             //form.submit();

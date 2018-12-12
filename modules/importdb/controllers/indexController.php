@@ -16,7 +16,7 @@ class indexController extends baseController {
 //        $servername = "172.16.149.2";
 //        $username   = "root";
 //        $password   = "lampart";
-//        $dbname     = "mediatek33";
+//        $dbname     = "testimport";
 //        $env        = "dev";
 
         try {
@@ -46,10 +46,11 @@ class indexController extends baseController {
             $check_database = strpos($stream_content, $dbname);
             if ($check_database) {
                 ssh2_exec($ssh_conn, " mysql -e 'drop database ".$dbname.";' ");
-                sleep(10);
+                sleep(15);
                 ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
             } else {
                 ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
+                sleep(15);
             }
 
         } catch (Exception $e) {
@@ -84,7 +85,7 @@ class indexController extends baseController {
                     $fileName = "debug3.sql.zip";
                     break;
                 default:
-                    throw new Exception("Unknown enviroment");
+                    throw new Exception("Unknown environment");
             }
 
             $t = time();

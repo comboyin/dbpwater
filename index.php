@@ -4,6 +4,7 @@
  error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
+ini_set('memory_limit', '-1'); //just for test only
 error_reporting(E_ERROR | E_PARSE);
 //phpinfo();
  /*** define the site path ***/
