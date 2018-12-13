@@ -80,7 +80,7 @@ class indexController extends baseController {
             $check_database = strpos($stream_content, $dbname);
             if ($check_database) {
                 ssh2_exec($ssh_conn, " mysql -e 'drop database if exists ".$dbname.";' ");
-                sleep(15);
+                sleep(50);
                 ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
             } else {
                 ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
