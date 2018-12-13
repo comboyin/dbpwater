@@ -256,3 +256,10 @@ form {
     background-color: #f2dede;
     border-color: #ebccd1;
 }
+.error {
+    color: #DC461D;
+    padding-left: 5px;
+}
+.form-control.error {
+    color: initial;
+}
