@@ -54,6 +54,7 @@
                                 <option  value="debug1">Debug 1</option>
                                 <option  value="debug2">Debug 2</option>
                                 <option  value="debug3">Debug 3</option>
+                                <option  value="test">Test</option>
                             </select>
                         </div>
                     </div>
