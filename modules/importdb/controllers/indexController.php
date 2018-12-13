@@ -14,7 +14,7 @@ class indexController extends baseController {
         } else {
             $error_conn = 'Connection Failed';
             //throw new Exception($error_conn);
-            $result = array("error" => 1, "message" => $$error_conn);
+            $result = array("error" => 1, "message" => $error_conn);
             return $result;
         }
         $ssh_auth = ssh2_auth_password($ssh_conn, $username, $password);
@@ -24,7 +24,7 @@ class indexController extends baseController {
         } else {
             $error_auth =  'Authentication Failed';
             //throw new Exception($error_auth);
-            $result = array("error" => 1, "message" => $$error_auth);
+            $result = array("error" => 1, "message" => $error_auth);
             return $result;
         }
         return $result;
