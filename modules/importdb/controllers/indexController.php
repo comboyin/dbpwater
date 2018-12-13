@@ -5,6 +5,31 @@ class indexController extends baseController {
 
     }
 
+    public function connect_to_server($servername, $username, $password) {
+        $result = '';
+        $ssh_conn = ssh2_connect($servername , 22);
+        if ($ssh_conn) {
+            //echo "Connection Successful!" . '<br>';
+            $result = array("error" => 0, "message" => "");
+        } else {
+            $error_conn = 'Connection Failed';
+            //throw new Exception($error_conn);
+            $result = array("error" => 1, "message" => $$error_conn);
+            return $result;
+        }
+        $ssh_auth = ssh2_auth_password($ssh_conn, $username, $password);
+        if ($ssh_auth) {
+            //echo "Authentication Successful!" . '<br>';
+            $result = array("error" => 0, "message" => "", "ssh_conn" => $ssh_conn);
+        } else {
+            $error_auth =  'Authentication Failed';
+            //throw new Exception($error_auth);
+            $result = array("error" => 1, "message" => $$error_auth);
+            return $result;
+        }
+        return $result;
+    }
+
 	public function importData($arg = array())
     {
         $servername = $_POST['ip'];
@@ -18,21 +43,28 @@ class indexController extends baseController {
 //        $password   = "lampart";
 //        $dbname     = "testimport";
 //        $env        = "dev";
+//        $env        = "test";
 
         try {
-            $ssh_conn = ssh2_connect($servername , 22);
-            $ssh_auth = ssh2_auth_password($ssh_conn, $username, $password);
-            if ($ssh_conn) {
-                //echo "Connection Successful!" . '<br>';
+//            $ssh_conn = ssh2_connect($servername , 22);
+//            $ssh_auth = ssh2_auth_password($ssh_conn, $username, $password);
+//            if ($ssh_conn) {
+//                //echo "Connection Successful!" . '<br>';
+//            } else {
+//                $error_conn = 'Connection Failed';
+//                throw new Exception($error_conn);
+//            }
+//            if ($ssh_auth) {
+//                //echo "Authentication Successful!" . '<br>';
+//            } else {
+//                $error_auth =  'Authentication Failed';
+//                throw new Exception($error_auth);
+//            }
+            $ssh_conn_arr = $this->connect_to_server($servername, $username, $password);
+            if($ssh_conn_arr['error'] == 0) {
+                $ssh_conn = $ssh_conn_arr['ssh_conn'];
             } else {
-                $error_conn = 'Connection Failed';
-                throw new Exception($error_conn);
-            }
-            if ($ssh_auth) {
-                //echo "Authentication Successful!" . '<br>';
-            } else {
-                $error_auth =  'Authentication Failed';
-                throw new Exception($error_auth);
+                throw new Exception($ssh_conn_arr['message']);
             }
             $stream = ssh2_exec($ssh_conn, " mysql -e 'show databases;' ");
 //            //$stream = ssh2_exec($ssh_conn, " mysql -e 'drop database mediatek;' ");
@@ -43,9 +75,11 @@ class indexController extends baseController {
             //sleep(10);
             $stream_content = stream_get_contents($stream_out);
 //            $str = '<br>stream content: ';var_dump($stream_content);echo '<br>';
+            ssh2_exec($ssh_conn, " mysql -e 'purge binary logs before NOW() ' ");
+            sleep(15);
             $check_database = strpos($stream_content, $dbname);
             if ($check_database) {
-                ssh2_exec($ssh_conn, " mysql -e 'drop database ".$dbname.";' ");
+                ssh2_exec($ssh_conn, " mysql -e 'drop database if exists ".$dbname.";' ");
                 sleep(15);
                 ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
             } else {
@@ -53,6 +87,29 @@ class indexController extends baseController {
                 sleep(15);
             }
 
+            //check disk space
+            $is_free = true;
+            $stream2 = ssh2_exec($ssh_conn, "df -h");
+            stream_set_blocking($stream2, true);
+            $stream_out2 = ssh2_fetch_stream($stream2, SSH2_STREAM_STDIO);
+            $stream_content2 = stream_get_contents($stream_out2);
+            //echo $stream_content2;echo '<br>';
+            $stream_content2_arr = explode(" ", $stream_content2);
+            $free_space = $stream_content2_arr[44];
+            if (strpos($free_space, 'M')) {
+                //$free_space = str_replace('M', '', $free_space);
+                $is_free = false;
+            }
+            if (strpos($free_space, 'G')) {
+                $free_space = intval(str_replace('G', '', $free_space));
+                if($free_space < 2) {
+                    $is_free = false;
+                }
+            }
+            //var_dump($free_space);
+            if (!$is_free) {
+                throw new Exception('Not enought disk space');
+            }
         } catch (Exception $e) {
             //echo 'Error: ',  $e->getMessage(), "\n";
             $html = $e->getMessage();
@@ -83,6 +140,9 @@ class indexController extends baseController {
                     break;
                 case "debug3":
                     $fileName = "debug3.sql.zip";
+                    break;
+                case "test":
+                    $fileName = "mediatek.sql.zip";
                     break;
                 default:
                     throw new Exception("Unknown environment");
@@ -232,6 +292,66 @@ class indexController extends baseController {
             exit();
         }
 
+    }
+
+    public function importData__() {
+        $servername = $_POST['ip'];
+        $username   = $_POST['user'];
+        $password   = $_POST['password'];
+        $dbname     = $_POST['dbname'];
+        $env        = $_POST['env'];
+        try {
+            $ssh_conn_arr = $this->connect_to_server($servername, $username, $password);
+            if ($ssh_conn_arr['error'] == 0) {
+                $ssh_conn = $ssh_conn_arr['ssh_conn'];
+            } else {
+                throw new Exception($ssh_conn_arr['message']);
+            }
+        } catch (Exception $e) {
+            $html = $e->getMessage();
+            header('Content-Type: application/json');
+            echo json_encode(
+                array(
+                    "error" => 1,
+                    "content" => $html
+                )
+            );
+            exit();
+        }
+        $stream = ssh2_exec($ssh_conn, " mysql -e 'show databases;' ");
+//            //$stream = ssh2_exec($ssh_conn, " mysql -e 'drop database mediatek;' ");
+//            //$stream = ssh2_exec($ssh_conn, " mysql -e 'create database mediatek;' ");
+//            //echo 'stream: '; var_dump($stream);echo '<br>';
+        stream_set_blocking($stream, true);
+        $stream_out = ssh2_fetch_stream($stream, SSH2_STREAM_STDIO);
+        //sleep(10);
+        $stream_content = stream_get_contents($stream_out);
+//            $str = '<br>stream content: ';var_dump($stream_content);echo '<br>';
+        $check_database = strpos($stream_content, $dbname);
+        if ($check_database) {
+            ssh2_exec($ssh_conn, " mysql -e 'drop database if exists ".$dbname.";' ");
+            sleep(15);
+            ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
+        } else {
+            ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
+            sleep(15);
+        }
+        $stream = ssh2_exec($ssh_conn, " mysql -e 'show databases;' ");
+        stream_set_blocking($stream, true);
+        $stream_out = ssh2_fetch_stream($stream, SSH2_STREAM_STDIO);
+        //sleep(10);
+        $stream_content = stream_get_contents($stream_out);
+        ssh2_exec($ssh_conn, " mysql -e 'purge binary logs before NOW() ' ");
+        sleep(15);
+        $check_database = strpos($stream_content, $dbname);
+        if ($check_database) {
+            ssh2_exec($ssh_conn, " mysql -e 'drop database if exists ".$dbname.";' ");
+            sleep(15);
+            ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
+        } else {
+            ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
+            sleep(15);
+        }
     }
 
 }

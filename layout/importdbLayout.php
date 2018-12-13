@@ -2,7 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <title>IMPORT DB</title>
-
+    <link rel="shortcut icon" href="public/img/import.ico">
     <link rel="stylesheet" href="<?php echo __FOLDER."public/login/css/reset.css"?>">
 
     <link rel='stylesheet prefetch' href='http://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700,900|RobotoDraft:400,100,300,500,700,900'>

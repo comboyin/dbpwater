@@ -143,15 +143,15 @@ body {
 
 /* alert  */
 .alert {
+    font-size: 15px;
 	padding: 15px;
     border: 1px solid transparent;
     border-radius: 4px;
-    max-width: 320px;
+    max-width: initial;
     margin: 0 auto;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
     margin-top: -40px;
 }
-
 .alert-error{
     color: #a94442;
     background-color: #f2dede;
@@ -241,13 +241,10 @@ form {
     transform: translate(-50%, 0);
     z-index: 9999999;
 }
-.alert {
-    max-width: initial;
-    border-radius: 4px;
-}
 .alert-dismissible .close {
-    top: -10px;
+    top: -13px;
     right: -10px;
+    font-size: 23px;
 }
 .alert-success {
     color: #3c763d;
