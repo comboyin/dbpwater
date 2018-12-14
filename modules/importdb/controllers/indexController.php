@@ -172,6 +172,7 @@ class indexController extends baseController {
                     //echo "WOOT! file extracted to $sqlTmp";
                 } else {
                     //echo "Doh! I couldn't open file";
+                    rmdir($sqlTmp);
                     throw new Exception("Could not open zip file");
                 }
                 sleep(10);
