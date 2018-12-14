@@ -12,7 +12,7 @@ class indexController extends baseController {
             //echo "Connection Successful!" . '<br>';
             $result = array("error" => 0, "message" => "");
         } else {
-            $error_conn = 'Connection Failed';
+            $error_conn = 'Connection failed, cannot connect to this IP';
             //throw new Exception($error_conn);
             $result = array("error" => 1, "message" => $error_conn);
             return $result;
@@ -22,7 +22,7 @@ class indexController extends baseController {
             //echo "Authentication Successful!" . '<br>';
             $result = array("error" => 0, "message" => "", "ssh_conn" => $ssh_conn);
         } else {
-            $error_auth =  'Authentication Failed';
+            $error_auth =  'Authentication failed, incorrect username or password';
             //throw new Exception($error_auth);
             $result = array("error" => 1, "message" => $error_auth);
             return $result;

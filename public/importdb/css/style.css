@@ -178,7 +178,8 @@ body {
     color: #ffffff !important;
     font-weight: 700;
     background-color: #a20024 !important;
-    width: 90%;
+    /*width: 90%; */
+    padding: 6px 20px;
     border-color: #a20024;
 }
 form {

@@ -46,7 +46,7 @@
                     </div>
                     <span class="note">Note: DB will drop if exists, all data will be deleted</span>
                     <div class="form-group row">
-                        <div class="col-sm-12">
+                        <div class="col-sm-10 col-sm-offset-2">
                             <select class="form-control" id="env" name="env">
                                 <option disabled="disabled" selected value="">Select environment</option>
                                 <option value="dev">Dev</option>
