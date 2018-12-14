@@ -132,6 +132,67 @@ class indexController extends baseController {
             //sleep(15);
             //$check_database = strpos($stream_content, $dbname);
 
+            //get file to import
+            //try {
+                switch ($env) {
+                    case "dev":
+                        $fileName = "dev.sql.zip";
+                        break;
+                    case "pre":
+                        $fileName = "pre.sql.zip";
+                        break;
+                    case "debug1":
+                        $fileName = "debug1.sql.zip";
+                        break;
+                    case "debug2":
+                        $fileName = "debug2.sql.zip";
+                        break;
+                    case "debug3":
+                        $fileName = "debug3.sql.zip";
+                        break;
+                    case "test":
+                        $fileName = "mediatek.sql.zip";
+                        break;
+                    default:
+                        throw new Exception("Unknown environment");
+                }
+
+                $t = time();
+                $sqlTmp  = __SITE_PATH . '/sql/tmp_'.$t;
+                mkdir($sqlTmp, 0777, true);
+                $sqlFileZip =  __SITE_PATH . '/sql/'.$fileName;
+                //$sqlFile  = __SITE_PATH . '/sql/mediatek.sql';
+
+                $zip = new ZipArchive;
+                $res = $zip->open($sqlFileZip);
+                if ($res === TRUE) {
+                    // extract it to the path we determined above
+                    $zip->extractTo($sqlTmp);
+                    $zip->close($sqlFileZip);
+                    //echo "WOOT! file extracted to $sqlTmp";
+                } else {
+                    //echo "Doh! I couldn't open file";
+                    throw new Exception("Could not open zip file");
+                }
+                sleep(10);
+                $list = scandir($sqlTmp, 1);
+                //$files = array_diff($list, array('.','..'));
+                //echo '<br><pre>';var_dump($list);echo '</pre>';
+                $sqlFile = $sqlTmp . '/' . $list[0];
+                //echo '<br><pre>';var_dump($sqlFile);echo '</pre>';
+//            }
+//            catch (Exception $e) {
+//                $html = $e->getMessage();
+//                header('Content-Type: application/json');
+//                echo json_encode(
+//                    array(
+//                        "error" => 1,
+//                        "content" => $html
+//                    )
+//                );
+//                exit();
+//            }
+
             if ($check_database) {
                 ssh2_exec($ssh_conn, " mysql -e 'drop database if exists ".$dbname.";' ");
                 sleep(90);
@@ -177,66 +238,6 @@ class indexController extends baseController {
             );
             exit();
             //return false;
-        }
-
-        try {
-            switch ($env) {
-                case "dev":
-                    $fileName = "dev.sql.zip";
-                    break;
-                case "pre":
-                    $fileName = "pre.sql.zip";
-                    break;
-                case "debug1":
-                    $fileName = "debug1.sql.zip";
-                    break;
-                case "debug2":
-                    $fileName = "debug2.sql.zip";
-                    break;
-                case "debug3":
-                    $fileName = "debug3.sql.zip";
-                    break;
-                case "test":
-                    $fileName = "mediatek.sql.zip";
-                    break;
-                default:
-                    throw new Exception("Unknown environment");
-            }
-
-            $t = time();
-            $sqlTmp  = __SITE_PATH . '/sql/tmp_'.$t;
-            mkdir($sqlTmp, 0777, true);
-            $sqlFileZip =  __SITE_PATH . '/sql/'.$fileName;
-            //$sqlFile  = __SITE_PATH . '/sql/mediatek.sql';
-
-            $zip = new ZipArchive;
-            $res = $zip->open($sqlFileZip);
-            if ($res === TRUE) {
-                // extract it to the path we determined above
-                $zip->extractTo($sqlTmp);
-                $zip->close($sqlFileZip);
-                //echo "WOOT! file extracted to $sqlTmp";
-            } else {
-                //echo "Doh! I couldn't open file";
-                throw new Exception("Could not open zip file");
-            }
-            sleep(10);
-            $list = scandir($sqlTmp, 1);
-            //$files = array_diff($list, array('.','..'));
-            //echo '<br><pre>';var_dump($list);echo '</pre>';
-            $sqlFile = $sqlTmp . '/' . $list[0];
-            //echo '<br><pre>';var_dump($sqlFile);echo '</pre>';
-        }
-        catch (Exception $e) {
-            $html = $e->getMessage();
-            header('Content-Type: application/json');
-            echo json_encode(
-                array(
-                    "error" => 1,
-                    "content" => $html
-                )
-            );
-            exit();
         }
 
         try {
