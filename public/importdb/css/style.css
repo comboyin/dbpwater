@@ -208,14 +208,14 @@ form {
   background-color: #ffffff;
   border: none;
 }
-.modal-btn-yes {
+.modal-btn-yes, .check-db-btn-yes {
     background-color: #58b855 !important;
     color: #ffffff !important;
     border: none;
     margin-right: 20px;
     padding: 6px 24px;
 }
-.modal-btn-no {
+.modal-btn-no, .check-db-btn-no {
     background-color: #db524b !important;
     color: #ffffff !important;
     border: none;

@@ -44,7 +44,7 @@
                             <input type="text" required class="form-control" id="dbname" name="dbname" placeholder="">
                         </div>
                     </div>
-                    <span class="note">Note: DB will drop if exists, all data will delete</span>
+                    <span class="note">Note: DB will drop if exists, all data will be deleted</span>
                     <div class="form-group row">
                         <div class="col-sm-12">
                             <select class="form-control" id="env" name="env">
@@ -64,8 +64,9 @@
 <!--                            <button type="submit" class="btn btn-default btn-import" value="submit">Import</button>-->
                         </div>
                     </div>
+                    <input type="hidden" name="check_database" id="checkDatabase" value="" >
                 </form>
-                <!-- Modal -->
+                <!-- Modal confirm -->
                 <div class="modal fade" id="confirmImportModal" role="dialog">
                     <div class="modal-dialog">
                         <!-- Modal content-->
@@ -80,6 +81,25 @@
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-default modal-btn-yes">OK</button>
                                 <button type="button" class="btn btn-default modal-btn-no" data-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Modal check if database exists -->
+                <div class="modal fade" id="checkDatabaseModal" role="dialog">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Message</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p>A database with this name already exists, still process form ?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default check-db-btn-yes">OK</button>
+                                <button type="button" class="btn btn-default check-db-btn-no" data-dismiss="modal">Cancel</button>
                             </div>
                         </div>
                     </div>
