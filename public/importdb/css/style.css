@@ -264,3 +264,6 @@ form {
 .form-control.error {
     color: initial;
 }
+.select-env {
+    line-height: 30px;
+}

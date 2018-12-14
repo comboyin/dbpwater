@@ -1,6 +1,8 @@
 // Toggle Function
 jQuery(document).ready(function($){
 
+    $('select').niceSelect();
+
     $(".btn-import").on("click", function(){
         $('.overlay').show();
         $.ajax({
