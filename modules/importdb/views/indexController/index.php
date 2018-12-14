@@ -111,6 +111,6 @@
     <div class="overlay">
         <div class="loading-image">
             <img src="public/img/loading1.gif" >
-            <p>Please wait!</p>
+            <p>Data processing, please wait...</p>
         </div>
     </div>
