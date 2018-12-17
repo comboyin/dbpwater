@@ -341,7 +341,7 @@ class indexController extends baseController {
             unlink($sqlFile);
             rmdir($sqlTmp);
 
-            $html = "Import database done";
+            $html = "Data import finished successfully";
             header('Content-Type: application/json');
             echo json_encode(
                 array(
