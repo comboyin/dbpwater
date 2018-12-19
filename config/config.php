@@ -45,6 +45,12 @@ $config = array (
                     ),
                     'default' => 'layout/importdbLayout'
                 ),
+                'exportdb/index' => array(
+                    'actions'=>array(
+
+                    ),
+                    'default' => 'layout/exportdbLayout'
+                ),
 				'user/index' => array(
 						'actions' => array(
 
@@ -78,6 +84,11 @@ $config = array (
 							),
 						),
                         "importdb"=>array(
+                            "index" => array(
+                                "all" => "all"
+                            ),
+                        ),
+                        "exportdb"=>array(
                             "index" => array(
                                 "all" => "all"
                             ),

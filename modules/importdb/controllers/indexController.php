@@ -85,12 +85,12 @@ class indexController extends baseController {
 
     public function importData($arg = array())
     {
-        $servername = trim($_POST['ip']);
-        $username   = trim($_POST['user']);
-        $password   = trim($_POST['password']);
-        $dbname     = trim($_POST['dbname']);
-        $env        = trim($_POST['env']);
-        $check_database = $_POST['check_database'];
+        $servername = htmlspecialchars(trim($_POST['ip']));
+        $username   = htmlspecialchars(trim($_POST['user']));
+        $password   = htmlspecialchars(trim($_POST['password']));
+        $dbname     = htmlspecialchars(trim($_POST['dbname']));
+        $env        = htmlspecialchars(trim($_POST['env']));
+        $check_database = htmlspecialchars(trim($_POST['check_database']));
 
 //        $servername = "172.16.149.2";
 //        $username   = "root";
