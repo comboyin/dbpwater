@@ -147,8 +147,31 @@ class indexController extends baseController {
                 file_put_contents($sql_file, $content);
 
                 //Create zip file
-                $d = date("Y_m_d_H_i_s");
-                $zip_file = __SITE_PATH . '/sql/dev.sql_'.$d.'.zip';
+                $t = time();
+                $d = date("Y_m_d_H_i_s", $t);
+                switch ($env) {
+                    case "dev":
+                        $zip_file = __SITE_PATH . '/sql/dev.sql_'.$d.'.zip';
+                        break;
+                    case "pre":
+                        $zip_file = __SITE_PATH . '/sql/pre.sql_'.$d.'.zip';
+                        break;
+                    case "debug1":
+                        $zip_file = __SITE_PATH . '/sql/debug1.sql_'.$d.'.zip';
+                        break;
+                    case "debug2":
+                        $zip_file = __SITE_PATH . '/sql/debug2.sql_'.$d.'zip';
+                        break;
+                    case "debug3":
+                        $zip_file = __SITE_PATH . '/sql/debug3.sql_'.$d.'.zip';
+                        break;
+                    case "test":
+                        $zip_file = __SITE_PATH . '/sql/test.sql_'.$d.'.zip';
+                        break;
+                    default:
+                        throw new Exception("Unknown environment");
+                }
+                //$zip_file = __SITE_PATH . '/sql/dev.sql_'.$d.'.zip';
 
                 $zip = new ZipArchive();
                 if ($zip->open($zip_file, ZipArchive::CREATE) === TRUE) {

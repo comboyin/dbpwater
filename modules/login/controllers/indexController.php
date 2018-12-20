@@ -18,7 +18,8 @@ class indexController extends baseController {
 				$error = 'Username and password wrong.';
 			}else{
 				$_SESSION['acl']['account'] = $account;
-				$this->redirectUrl( $this->url( array( 'module'=>'user' ) ) );
+				//$this->redirectUrl( $this->url( array( 'module'=>'user' ) ) );
+                $this->redirectUrl( $this->url( array( 'module'=>'exportdb' ) ) );
 				exit(0);
 			}
 		}

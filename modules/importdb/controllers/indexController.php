@@ -2,7 +2,7 @@
 class indexController extends baseController {
 
     public function index( $arg =  array() ) {
-
+var_dump($this->getLatestDataFile('test'));
     }
 
     public function connect_to_server($servername, $username, $password) {
@@ -132,26 +132,56 @@ class indexController extends baseController {
             //sleep(15);
             //$check_database = strpos($stream_content, $dbname);
 
+            //check disk space
+            $is_free = true;
+            $stream = ssh2_exec($ssh_conn, "df -h");
+            stream_set_blocking($stream, true);
+            $stream_out = ssh2_fetch_stream($stream, SSH2_STREAM_STDIO);
+            $stream_content = stream_get_contents($stream_out);
+            //echo $stream_content2;echo '<br>';
+            $stream_content_arr = explode(" ", $stream_content);
+            $free_space = $stream_content_arr[44];
+            if (strpos($free_space, 'M')) {
+                //$free_space = str_replace('M', '', $free_space);
+                $is_free = false;
+            }
+            if (strpos($free_space, 'G')) {
+                $free_space = intval(str_replace('G', '', $free_space));
+                if($free_space < 2) {
+                    $is_free = false;
+                }
+            }
+            //var_dump($free_space);
+            if (!$is_free) {
+                throw new Exception('Not enought disk space');
+            }
+
             //get file to import
             //try {
                 switch ($env) {
                     case "dev":
-                        $fileName = "dev.sql.zip";
+                        //$fileName = "dev.sql.zip";
+                        $fileName = $this->getLatestDataFile('dev');
                         break;
                     case "pre":
-                        $fileName = "pre.sql.zip";
+                        //$fileName = "pre.sql.zip";
+                        $fileName = $this->getLatestDataFile('pre');
                         break;
                     case "debug1":
-                        $fileName = "debug1.sql.zip";
+                        //$fileName = "debug1.sql.zip";
+                        $fileName = $this->getLatestDataFile('debug1');
                         break;
                     case "debug2":
-                        $fileName = "debug2.sql.zip";
+                        //$fileName = "debug2.sql.zip";
+                        $fileName = $this->getLatestDataFile('debug2');
                         break;
                     case "debug3":
-                        $fileName = "debug3.sql.zip";
+                        //$fileName = "debug3.sql.zip";
+                        $fileName = $this->getLatestDataFile('debug3');
                         break;
                     case "test":
-                        $fileName = "mediatek.sql.zip";
+                        //$fileName = "mediatek.sql.zip";
+                        $fileName = $this->getLatestDataFile('test');
                         break;
                     default:
                         throw new Exception("Unknown environment");
@@ -204,29 +234,6 @@ class indexController extends baseController {
                 sleep(15);
             }
 
-            //check disk space
-            $is_free = true;
-            $stream2 = ssh2_exec($ssh_conn, "df -h");
-            stream_set_blocking($stream2, true);
-            $stream_out2 = ssh2_fetch_stream($stream2, SSH2_STREAM_STDIO);
-            $stream_content2 = stream_get_contents($stream_out2);
-            //echo $stream_content2;echo '<br>';
-            $stream_content2_arr = explode(" ", $stream_content2);
-            $free_space = $stream_content2_arr[44];
-            if (strpos($free_space, 'M')) {
-                //$free_space = str_replace('M', '', $free_space);
-                $is_free = false;
-            }
-            if (strpos($free_space, 'G')) {
-                $free_space = intval(str_replace('G', '', $free_space));
-                if($free_space < 2) {
-                    $is_free = false;
-                }
-            }
-            //var_dump($free_space);
-            if (!$is_free) {
-                throw new Exception('Not enought disk space');
-            }
         } catch (Exception $e) {
             //echo 'Error: ',  $e->getMessage(), "\n";
             $html = $e->getMessage();
@@ -352,6 +359,36 @@ class indexController extends baseController {
             exit();
         }
 
+    }
+
+    function getLatestDataFile($env = '') {
+        $dir  = __SITE_PATH . '/sql/';
+        $file_list = scandir($dir, 1);
+        $data_files = array();
+        foreach ($file_list as $item) {
+            $find = $env.'.sql';
+            if (strpos($item, $find) !== false ) {
+                $data_files[] = $item;
+            }
+        }
+        $max = 0;
+        $file = '';
+        if (!empty($data_files)) {
+            foreach ($data_files as $value) {
+                $file_path = $dir.$value;
+                $creation_date = filectime($file_path);
+                if ($creation_date > $max) {
+                    $max = $creation_date;
+                    $file = $value;
+                }
+            }
+        } else {
+            throw new Exception('Data file does not exist');
+        }
+        if (!empty($file)) {
+            return $file;
+        }
+        return false;
     }
 
     public function importData__() {
