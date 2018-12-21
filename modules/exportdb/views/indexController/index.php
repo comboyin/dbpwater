@@ -46,7 +46,7 @@
                     </div>
                     <div class="form-group row">
                         <div class="col-sm-10 col-sm-offset-2">
-                            <select class="form-control wide select-env" id="env" name="env">
+                            <select class="form-control wide select-env" id="env" name="env" required>
                                 <option disabled="disabled" selected value="">Select environment</option>
                                 <option value="dev">Dev</option>
                                 <option value="pre">Pre</option>

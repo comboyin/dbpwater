@@ -267,3 +267,7 @@ form {
 .select-env {
     line-height: 30px;
 }
+label#env-error {
+    position: absolute;
+    top: 45px;
+}

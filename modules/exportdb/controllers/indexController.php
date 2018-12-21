@@ -41,8 +41,8 @@ class indexController extends baseController {
 //        $servername = '172.16.149.2';
 //        $username   = 'root';
 //        $password   = 'lampart';
-//        $dbname     = 'test1';
-//        $env        = '';
+//        $dbname     = 'test2';
+//        $env        = 'dev';
 
         try {
             $connect = $this->connectdata($servername, $dbname, $username, $password);
@@ -73,24 +73,38 @@ class indexController extends baseController {
                 }
                 $content = '';
                 foreach ($tables as $item) {
-                    $content .= 'DROP TABLE IF EXISTS '."`".$item['table']."`".';';
-                    $sql1 = 'SHOW CREATE TABLE '."`".$item['table']."`";
-                    //$sql1 = 'select * from mtk_content';
-                    $sth = $pdo->prepare($sql1);
-                    $sth->execute();
-                    $result = $sth->fetch(PDO::FETCH_ASSOC);
-                    $content .= "\n\n".$result['Create Table'].";\n\n";
+                    try {
+                        $content .= 'DROP TABLE IF EXISTS '."`".$item['table']."`".';';
+                        $sql1 = 'SHOW CREATE TABLE '."`".$item['table']."`";
+                        //$sql1 = 'select * from mtk_content';
+                        $sth = $pdo->prepare($sql1);
+                        $sth->execute();
+                        $result = $sth->fetch(PDO::FETCH_ASSOC);
+                        $content .= "\n\n".$result['Create Table'].";\n\n";
+                    }
+                    catch (\PDOException $e) {
+                        $html = $e->getMessage();
+                        header('Content-Type: application/json');
+                        echo json_encode(
+                            array(
+                                "error" => 1,
+                                "content" => $html
+                            )
+                        );
+                        $pdo = null;
+                        exit();
+                    }
 
                     if ($item['get_data'] == -1) {
-                        $sql2 = 'SHOW COLUMNS FROM '."`".$item['table']."`";
-                        $sth = $pdo->prepare($sql2);
-                        $sth->execute();
-                        $column_names = $sth->fetchAll(PDO::FETCH_COLUMN);
-                        $column_count = count($column_names);
-
-                        $sql3 = 'SELECT * FROM '.$item['table'];
-                        $sth = $pdo->prepare($sql3);
                         try {
+                            $sql2 = 'SHOW COLUMNS FROM '."`".$item['table']."`";
+                            $sth = $pdo->prepare($sql2);
+                            $sth->execute();
+                            $column_names = $sth->fetchAll(PDO::FETCH_COLUMN);
+                            $column_count = count($column_names);
+
+                            $sql3 = 'SELECT * FROM '.$item['table'];
+                            $sth = $pdo->prepare($sql3);
                             $sth->execute();
                         }
                         catch (\PDOException $e) {
@@ -103,9 +117,10 @@ class indexController extends baseController {
                                 )
                             );
                             $pdo = null;
+                            exit();
                         }
 
-                        $row_count = $sth->rowCount();
+                        //$row_count = $sth->rowCount();
                         $result = $sth->fetchAll();
                         foreach ($result as $value) {
                             $head = '';

@@ -2,6 +2,10 @@
 jQuery(document).ready(function($){
 
     $('select').niceSelect();
+    $('.nice-select.select-env li').on('click', function(){
+        var dataValue = $(this).attr('data-value');
+        $('select#env').val(dataValue);
+    });
 
     $('#dbname').on('keypress', function(){
         if ($(this).val().length > 60) {
@@ -29,6 +33,7 @@ jQuery(document).ready(function($){
 
     }, 'Invalid name');
     $('#exportDB').validate({
+        ignore: [],
         rules: {
             host: {
                 required: true

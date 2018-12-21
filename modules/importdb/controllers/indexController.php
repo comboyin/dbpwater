@@ -2,7 +2,7 @@
 class indexController extends baseController {
 
     public function index( $arg =  array() ) {
-var_dump($this->getLatestDataFile('test'));
+
     }
 
     public function connect_to_server($servername, $username, $password) {
@@ -96,6 +96,136 @@ var_dump($this->getLatestDataFile('test'));
 //        $username   = "root";
 //        $password   = "lampart";
 //        $dbname     = "testimport";
+//        $env        = "test";
+
+        try {
+            $ssh_conn_arr = $this->connect_to_server($servername, $username, $password);
+            if($ssh_conn_arr['error'] == 0) {
+                $ssh_conn = $ssh_conn_arr['ssh_conn'];
+            } else {
+                throw new Exception($ssh_conn_arr['message']);
+            }
+
+            //check disk space
+            $df = disk_free_space("/");
+            if ($df < 2000000000) { //2GB
+                throw new Exception('Not enought disk space');
+            }
+
+            //get file to import
+            //try {
+            switch ($env) {
+                case "dev":
+                    //$fileName = "dev.sql.zip";
+                    $fileName = $this->getLatestDataFile('dev');
+                    break;
+                case "pre":
+                    //$fileName = "pre.sql.zip";
+                    $fileName = $this->getLatestDataFile('pre');
+                    break;
+                case "debug1":
+                    //$fileName = "debug1.sql.zip";
+                    $fileName = $this->getLatestDataFile('debug1');
+                    break;
+                case "debug2":
+                    //$fileName = "debug2.sql.zip";
+                    $fileName = $this->getLatestDataFile('debug2');
+                    break;
+                case "debug3":
+                    //$fileName = "debug3.sql.zip";
+                    $fileName = $this->getLatestDataFile('debug3');
+                    break;
+                case "test":
+                    //$fileName = "mediatek.sql.zip";
+                    $fileName = $this->getLatestDataFile('test');
+                    break;
+                default:
+                    throw new Exception("Unknown environment");
+            }
+
+            $t = time();
+            $sqlTmp  = __SITE_PATH . '/sql/tmp_'.$t;
+            mkdir($sqlTmp, 0777, true);
+            $sqlFileZip =  __SITE_PATH . '/sql/'.$fileName;
+            //$sqlFile  = __SITE_PATH . '/sql/mediatek.sql';
+
+            $zip = new ZipArchive;
+            $res = $zip->open($sqlFileZip);
+            if ($res === TRUE) {
+                // extract it to the path we determined above
+                $zip->extractTo($sqlTmp);
+                $zip->close($sqlFileZip);
+                //echo "WOOT! file extracted to $sqlTmp";
+            } else {
+                //echo "Doh! I couldn't open file";
+                rmdir($sqlTmp);
+                throw new Exception("Could not open zip file");
+            }
+            sleep(10);
+            $list = scandir($sqlTmp, 1);
+            $sqlFile = $sqlTmp . '/' . $list[0];
+
+            if ($check_database) {
+                ssh2_exec($ssh_conn, " mysql -e 'drop database if exists ".$dbname.";' ");
+                sleep(90);
+                ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
+                sleep(15);
+            } else {
+                ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
+                sleep(15);
+            }
+
+        } catch (Exception $e) {
+            //echo 'Error: ',  $e->getMessage(), "\n";
+            $html = $e->getMessage();
+            header('Content-Type: application/json');
+            echo json_encode(
+                array(
+                    "error" => 1,
+                    "content" => $html
+                )
+            );
+            exit();
+        }
+
+        $command = 'mysql -h '. $servername .' -u '. $username .' -p'. $password .' '. $dbname .' < '.$sqlFile;
+        exec( $command, $output = array(), $worked );
+        //var_dump($worked);
+        switch($worked) {
+            case 0:
+                $html = 'Data import finished successfully';
+                $error = 0;
+                break;
+            case 1:
+                $html= 'There was an error during import';
+                $error = 1;
+                break;
+        }
+        header('Content-Type: application/json');
+        echo json_encode(
+            array(
+                "error" => $error,
+                "content" => $html
+            )
+        );
+        unlink($sqlFile);
+        rmdir($sqlTmp);
+        exit();
+    }
+
+    public function importData__($arg = array())
+    {
+        $servername = htmlspecialchars(trim($_POST['ip']));
+        $username   = htmlspecialchars(trim($_POST['user']));
+        $password   = htmlspecialchars(trim($_POST['password']));
+        $dbname     = htmlspecialchars(trim($_POST['dbname']));
+        $env        = htmlspecialchars(trim($_POST['env']));
+        $check_database = htmlspecialchars(trim($_POST['check_database']));
+
+//        $servername = "172.16.149.2";
+//        $username   = "root";
+//        $password   = "lampart";
+//        $dbname     = "testimport";
 //        $env        = "dev";
 //        $env        = "test";
 
@@ -133,26 +263,30 @@ var_dump($this->getLatestDataFile('test'));
             //$check_database = strpos($stream_content, $dbname);
 
             //check disk space
-            $is_free = true;
-            $stream = ssh2_exec($ssh_conn, "df -h");
-            stream_set_blocking($stream, true);
-            $stream_out = ssh2_fetch_stream($stream, SSH2_STREAM_STDIO);
-            $stream_content = stream_get_contents($stream_out);
-            //echo $stream_content2;echo '<br>';
-            $stream_content_arr = explode(" ", $stream_content);
-            $free_space = $stream_content_arr[44];
-            if (strpos($free_space, 'M')) {
-                //$free_space = str_replace('M', '', $free_space);
-                $is_free = false;
-            }
-            if (strpos($free_space, 'G')) {
-                $free_space = intval(str_replace('G', '', $free_space));
-                if($free_space < 2) {
-                    $is_free = false;
-                }
-            }
-            //var_dump($free_space);
-            if (!$is_free) {
+//            $is_free = true;
+//            $stream = ssh2_exec($ssh_conn, "df -h");
+//            stream_set_blocking($stream, true);
+//            $stream_out = ssh2_fetch_stream($stream, SSH2_STREAM_STDIO);
+//            $stream_content = stream_get_contents($stream_out);
+//            //echo $stream_content2;echo '<br>';
+//            $stream_content_arr = explode(" ", $stream_content);
+//            $free_space = $stream_content_arr[44];
+//            if (strpos($free_space, 'M')) {
+//                //$free_space = str_replace('M', '', $free_space);
+//                $is_free = false;
+//            }
+//            if (strpos($free_space, 'G')) {
+//                $free_space = intval(str_replace('G', '', $free_space));
+//                if($free_space < 2) {
+//                    $is_free = false;
+//                }
+//            }
+//
+//            if (!$is_free) {
+//                throw new Exception('Not enought disk space');
+//            }
+            $df = disk_free_space("/");
+            if ($df < 2000000000) { //2GB
                 throw new Exception('Not enought disk space');
             }
 
@@ -391,64 +525,5 @@ var_dump($this->getLatestDataFile('test'));
         return false;
     }
 
-    public function importData__() {
-        $servername = trim($_POST['ip']);
-        $username   = trim($_POST['user']);
-        $password   = trim($_POST['password']);
-        $dbname     = trim($_POST['dbname']);
-        $env        = trim($_POST['env']);
-        try {
-            $ssh_conn_arr = $this->connect_to_server($servername, $username, $password);
-            if ($ssh_conn_arr['error'] == 0) {
-                $ssh_conn = $ssh_conn_arr['ssh_conn'];
-            } else {
-                throw new Exception($ssh_conn_arr['message']);
-            }
-        } catch (Exception $e) {
-            $html = $e->getMessage();
-            header('Content-Type: application/json');
-            echo json_encode(
-                array(
-                    "error" => 1,
-                    "content" => $html
-                )
-            );
-            exit();
-        }
-        $stream = ssh2_exec($ssh_conn, " mysql -e 'show databases;' ");
-//            //$stream = ssh2_exec($ssh_conn, " mysql -e 'drop database mediatek;' ");
-//            //$stream = ssh2_exec($ssh_conn, " mysql -e 'create database mediatek;' ");
-//            //echo 'stream: '; var_dump($stream);echo '<br>';
-        stream_set_blocking($stream, true);
-        $stream_out = ssh2_fetch_stream($stream, SSH2_STREAM_STDIO);
-        //sleep(10);
-        $stream_content = stream_get_contents($stream_out);
-//            $str = '<br>stream content: ';var_dump($stream_content);echo '<br>';
-        $check_database = strpos($stream_content, $dbname);
-        if ($check_database) {
-            ssh2_exec($ssh_conn, " mysql -e 'drop database if exists ".$dbname.";' ");
-            sleep(15);
-            ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
-        } else {
-            ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
-            sleep(15);
-        }
-        $stream = ssh2_exec($ssh_conn, " mysql -e 'show databases;' ");
-        stream_set_blocking($stream, true);
-        $stream_out = ssh2_fetch_stream($stream, SSH2_STREAM_STDIO);
-        //sleep(10);
-        $stream_content = stream_get_contents($stream_out);
-        ssh2_exec($ssh_conn, " mysql -e 'purge binary logs before NOW() ' ");
-        sleep(15);
-        $check_database = strpos($stream_content, $dbname);
-        if ($check_database) {
-            ssh2_exec($ssh_conn, " mysql -e 'drop database if exists ".$dbname.";' ");
-            sleep(15);
-            ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
-        } else {
-            ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
-            sleep(15);
-        }
-    }
 
 }

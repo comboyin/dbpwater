@@ -2,6 +2,10 @@
 jQuery(document).ready(function($){
 
     $('select').niceSelect();
+    $('.nice-select.select-env li').on('click', function(){
+        var dataValue = $(this).attr('data-value');
+        $('select#env').val(dataValue);
+    });
 
     $(".btn-import").on("click", function(){
         $('.overlay').show();
@@ -102,6 +106,7 @@ jQuery(document).ready(function($){
 
     }, 'Invalid name');
     $('#importDB').validate({
+        ignore: [],
         rules: {
             ip: {
                 required: true
