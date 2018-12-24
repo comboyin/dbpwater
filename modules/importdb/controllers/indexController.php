@@ -8,7 +8,12 @@ class indexController extends baseController {
     public function index( $arg =  array() ) {
 
     }
-
+    /**
+     *
+     * @param string $servername
+     * @param string $username
+     * @param string $password
+     * @return array  */
     public function connect_to_server($servername, $username, $password) {
         $result = '';
         $ssh_conn = ssh2_connect($servername , 22);
@@ -71,48 +76,19 @@ class indexController extends baseController {
             );
             exit();
         }
-//        try {
-//            $pdo = new PDO("mysql:host=$this->local_server;dbname=$this->local_dbname", $this->local_username, $this->local_password);
-//            $pdo->exec("set names utf8");
-//            // set the PDO error mode to exception
-//            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-//            $sql = 'SELECT * FROM server_status';
-//            $sth = $pdo->prepare($sql);
-//            $sth->execute();
-//            $result = $sth->fetch(PDO::FETCH_ASSOC);
-//
-//            $html = "Server is busy, please try again later";
-//            header('Content-Type: application/json');
-//            echo json_encode(
-//                array(
-//                    "error" => 0,
-//                    "server_status" => $result['is_busy'],
-//                    "content" => $html
-//                )
-//            );
-//            exit();
-//
-//        }
-//        catch(PDOException $e)
-//        {
-//            $html = "Cannot get server status " . $e->getMessage();
-//            header('Content-Type: application/json');
-//            echo json_encode(
-//                array(
-//                    "error" => 1,
-//                    "content" => $html
-//                )
-//            );
-//            exit();
-//        }
     }
 
+    /**
+     *
+     * @param int $status
+     * @return int|$row_count  */
     public function setServerStatus($status) {
         //$status = 1;
         $serverstatusModel = $this->model->get('ServerStatus');
         $row_count         = $serverstatusModel->setServerStatus($status);
         return $row_count;
     }
+
     public function checkDatabase($arg = array())
     {
         $servername = trim($_POST['ip']);

@@ -1,5 +1,8 @@
 <?php
 class serverstatusModel extends baseModel{
+    /**
+     *
+     * @return object|result  */
     public function getServerStatus() {
         try {
             $pdo = $this->getPdo();
@@ -15,6 +18,10 @@ class serverstatusModel extends baseModel{
         }
     }
 
+    /**
+     *
+     * @param int $status
+     * @return int|$row_count */
     public function setServerStatus($status) {
         try {
             $pdo = $this->getPdo();
