@@ -10,6 +10,41 @@ jQuery(document).ready(function($){
     $(".btn-import").on("click", function(){
         $('.overlay').show();
         $.ajax({
+            url: 'importdb/index/getServerStatus',
+            //async: false,
+            type : "POST",
+            dataType : 'json',
+            //dataType : 'html',
+            cache: false,
+            success : function(result) {
+                console.log(result);
+                if (result.server_status == 1) {
+                    msg = '<div class="alert alert-danger alert-dismissible">' +
+                        '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>' +
+                            result.content
+                        + '</strong></div>';
+                    $("#result").html(msg);
+                } else {
+                    checkDatabase();
+                }
+                $('.overlay').hide();
+            },
+            error: function(xhr, status, error){
+                var errorMessage = xhr.status + ': ' + xhr.statusText
+                //alert('Error - ' + errorMessage);
+                alert('Something went wrong ' + status + ' - ' + error);
+                msg = '<div class="alert alert-danger alert-dismissible">' +
+                    '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>' +
+                    'Something went wrong ' + status + ' - ' + error +
+                    '</strong></div>';
+                $("#result").html(msg);
+                $('.overlay').hide();
+            }
+        });
+    });
+
+    function checkDatabase() {
+        $.ajax({
             url: 'importdb/index/checkDatabase',
             //async: false,
             type : "POST",
@@ -42,7 +77,7 @@ jQuery(document).ready(function($){
                     //     $("#confirmImportModal").modal('hide');
                     // });
                 }
-                $('.overlay').hide();
+                //$('.overlay').hide();
             },
             error: function(xhr, status, error){
                 var errorMessage = xhr.status + ': ' + xhr.statusText
@@ -56,7 +91,7 @@ jQuery(document).ready(function($){
                 $('.overlay').hide();
             }
         });
-    });
+    }
 
     $(".check-db-btn-yes").on('click', function(){
         console.log('submit1');

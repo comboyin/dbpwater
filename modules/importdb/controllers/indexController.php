@@ -1,5 +1,9 @@
 <?php
 class indexController extends baseController {
+    private $local_server   = 'localhost';
+    private $local_dbname   = 'nbook';
+    private $local_username = 'root';
+    private $local_password = 'lampart';
 
     public function index( $arg =  array() ) {
 
@@ -28,6 +32,74 @@ class indexController extends baseController {
             return $result;
         }
         return $result;
+    }
+
+    public function getServerStatus($arg = array()) {
+        try {
+            $pdo = new PDO("mysql:host=$this->local_server;dbname=$this->local_dbname", $this->local_username, $this->local_password);
+            $pdo->exec("set names utf8");
+            // set the PDO error mode to exception
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $sql = 'SELECT * FROM server_status';
+            $sth = $pdo->prepare($sql);
+            $sth->execute();
+            $result = $sth->fetch(PDO::FETCH_ASSOC);
+            //var_dump($result);
+            //return $result['is_busy'];
+            $html = "Server is busy, please try again later";
+            header('Content-Type: application/json');
+            echo json_encode(
+                array(
+                    "error" => 0,
+                    "server_status" => $result['is_busy'],
+                    "content" => $html
+                )
+            );
+            exit();
+
+        }
+        catch(PDOException $e)
+        {
+            $html = "Cannot get server status " . $e->getMessage();
+            header('Content-Type: application/json');
+            echo json_encode(
+                array(
+                    "error" => 1,
+                    "content" => $html
+                )
+            );
+            exit();
+            //return array('error'=>1, 'message'=>$e->getMessage());
+        }
+    }
+
+    public function setServerStatus($status) {
+        //$status = 0;
+        try {
+            $pdo = new PDO("mysql:host=$this->local_server;dbname=$this->local_dbname", $this->local_username, $this->local_password);
+            $pdo->exec("set names utf8");
+            // set the PDO error mode to exception
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $sql = 'UPDATE server_status SET is_busy = '.$status;
+            $sth = $pdo->prepare($sql);
+            $sth->execute();
+            $row_count = $sth->rowCount();
+            return $row_count;
+
+        }
+        catch(PDOException $e)
+        {
+//            $html = $e->getMessage();
+//            header('Content-Type: application/json');
+//            echo json_encode(
+//                array(
+//                    "error" => 1,
+//                    "content" => $html
+//                )
+//            );
+//            exit();
+            return false;
+        }
     }
 
     public function checkDatabase($arg = array())
@@ -99,6 +171,7 @@ class indexController extends baseController {
 //        $env        = "test";
 
         try {
+            $this->setServerStatus(1);
             $ssh_conn_arr = $this->connect_to_server($servername, $username, $password);
             if($ssh_conn_arr['error'] == 0) {
                 $ssh_conn = $ssh_conn_arr['ssh_conn'];
@@ -185,6 +258,7 @@ class indexController extends baseController {
                     "content" => $html
                 )
             );
+            $this->setServerStatus(0);
             exit();
         }
 
@@ -210,6 +284,7 @@ class indexController extends baseController {
         );
         unlink($sqlFile);
         rmdir($sqlTmp);
+        $this->setServerStatus(0);
         exit();
     }
 

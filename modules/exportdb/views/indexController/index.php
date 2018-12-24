@@ -20,6 +20,7 @@
         <div class="form row">
             <div class="col-md-6 col-md-offset-3">
                 <form id="exportDB" method="post" action="" >
+                    <!--
                     <div class="form-group row">
                         <label for="host" class="col-sm-2 col-form-label">Host</label>
                         <div class="col-sm-10">
@@ -44,6 +45,7 @@
                             <input type="text" required class="form-control" id="dbname" name="dbname" placeholder="">
                         </div>
                     </div>
+                    -->
                     <div class="form-group row">
                         <div class="col-sm-10 col-sm-offset-2">
                             <select class="form-control wide select-env" id="env" name="env" required>

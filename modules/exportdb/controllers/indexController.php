@@ -1,11 +1,41 @@
 <?php
 class indexController extends baseController {
+    private $ssh_host = '';
+    private $ssh_port = 22;
+    private $ssh_auth_user = '';
+    private $ssh_auth_pub = '/home/username/.ssh/id_rsa.pub';
+    private $ssh_auth_priv = '/home/username/.ssh/id_rsa';
+    private $ssh_auth_pass = null;
+    private $connection;
 
     public function index( $arg =  array() ) {
 
     }
 
-    public function connectdata($servername, $dbname, $username, $password) {
+    public function connect() {
+        $env = htmlspecialchars(trim($_POST['env']));
+        switch ($env) {
+            case "dev":
+                break;
+            case "pre":
+                break;
+            case "debug1":
+                break;
+            case "debug2":
+                break;
+            case "debug3":
+                break;
+            case "test":
+                break;
+            default:
+                throw new Exception("Unknown environment");
+        }
+        if (!($this->connection = ssh2_connect($this->ssh_host, $this->ssh_port))) {
+            throw new Exception('Cannot connect to server');
+        }
+    }
+
+    public function connectdata__($servername, $dbname, $username, $password) {
 
         try {
             $pdo = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
@@ -31,7 +61,7 @@ class indexController extends baseController {
         }
     }
 
-    public function exportData() {
+    public function exportData__() {
         $servername = htmlspecialchars(trim($_POST['host']));
         $username   = htmlspecialchars(trim($_POST['user']));
         $password   = htmlspecialchars(trim($_POST['password']));
