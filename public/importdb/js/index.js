@@ -18,13 +18,13 @@ jQuery(document).ready(function($){
             cache: false,
             success : function(result) {
                 console.log(result);
-                if (result.server_status == 1) {
+                if (result.busy_state == 1) {
                     msg = '<div class="alert alert-danger alert-dismissible">' +
                         '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>' +
                             result.content
                         + '</strong></div>';
                     $("#result").html(msg);
-                } else {
+                } else if (result.busy_state == 0){
                     checkDatabase();
                 }
                 $('.overlay').hide();
