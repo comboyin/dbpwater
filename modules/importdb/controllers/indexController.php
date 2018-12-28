@@ -13,24 +13,19 @@ class indexController extends baseController {
      * @param string $password
      * @return array  */
     public function connect_to_server($servername, $username, $password) {
-        $result = '';
         $ssh_conn = $this->ssh_conn = ssh2_connect($servername , 22);
         if ($ssh_conn) {
-            //echo "Connection Successful!" . '<br>';
             $result = array("error" => 0, "message" => "");
         } else {
             $error_conn = 'Connection failed, could not connect to this IP';
-            //throw new Exception($error_conn);
             $result = array("error" => 1, "message" => $error_conn);
             return $result;
         }
         $ssh_auth = ssh2_auth_password($ssh_conn, $username, $password);
         if ($ssh_auth) {
-            //echo "Authentication Successful!" . '<br>';
             $result = array("error" => 0, "message" => "");
         } else {
             $error_auth =  'Authentication failed, incorrect username or password';
-            //throw new Exception($error_auth);
             $result = array("error" => 1, "message" => $error_auth);
             return $result;
         }
@@ -81,7 +76,6 @@ class indexController extends baseController {
      * @param int $status
      * @return int|$row_count  */
     public function setServerStatus($status) {
-        //$status = 1;
         $serverstatusModel = $this->model->get('ServerStatus');
         $row_count         = $serverstatusModel->setServerStatus($status);
         return $row_count;
@@ -94,11 +88,9 @@ class indexController extends baseController {
         $password   = trim($_POST['password']);
         $dbname     = trim($_POST['dbname']);
 
-//        $servername = "172.16.149.2";
-//        $username   = "root";
-//        $password   = "lampart";
-//        $dbname     = "testimport";
-
+        if (empty($servername) || empty($username) || empty($password) || empty($dbname)) {
+            throw new Exception("Invalid input");
+        }
         try {
             $connect_result = $this->connect_to_server($servername, $username, $password);
             $ssh_conn = $this->ssh_conn;
@@ -148,12 +140,6 @@ class indexController extends baseController {
         $env        = htmlspecialchars(trim($_POST['env']));
         $check_database = htmlspecialchars(trim($_POST['check_database']));
 
-//        $servername = "172.16.149.3";
-//        $username   = "root";
-//        $password   = "lampart";
-//        $dbname     = "testimport";
-//        $env        = "test";
-
         try {
             $this->setServerStatus(1);
             $connect_result = $this->connect_to_server($servername, $username, $password);
@@ -162,11 +148,6 @@ class indexController extends baseController {
                 throw new Exception($connect_result['message']);
             }
 
-            //check disk free space
-//            $df = disk_free_space("/");
-//            if ($df < 2000000000) { //2GB
-//                throw new Exception('Not enought disk space');
-//            }
             $stream_df = ssh2_exec($ssh_conn, "df -h");
             stream_set_blocking($stream_df, true);
             $data_df = "";
@@ -192,30 +173,23 @@ class indexController extends baseController {
             fclose($stream_df);
 
             //get file to import
-            //try {
             switch ($env) {
                 case "dev":
-                    //$fileName = "dev.sql.zip";
                     $fileName = $this->getLatestDataFile('dev');
                     break;
                 case "pre":
-                    //$fileName = "pre.sql.zip";
                     $fileName = $this->getLatestDataFile('pre');
                     break;
                 case "debug1":
-                    //$fileName = "debug1.sql.zip";
                     $fileName = $this->getLatestDataFile('debug1');
                     break;
                 case "debug2":
-                    //$fileName = "debug2.sql.zip";
                     $fileName = $this->getLatestDataFile('debug2');
                     break;
                 case "debug3":
-                    //$fileName = "debug3.sql.zip";
                     $fileName = $this->getLatestDataFile('debug3');
                     break;
                 case "test":
-                    //$fileName = "mediatek.sql.zip";
                     $fileName = $this->getLatestDataFile('test');
                     break;
                 default:
@@ -226,22 +200,17 @@ class indexController extends baseController {
             $sqlTmp  = __SITE_PATH . '/sql/tmp_'.$t;
             mkdir($sqlTmp, 0777, true);
             $sqlFileZip =  __SITE_PATH . '/sql/'.$fileName;
-            //$sqlFile  = __SITE_PATH . '/sql/mediatek.sql';
 
             $zip = new ZipArchive;
             $res = $zip->open($sqlFileZip);
             if ($res === TRUE) {
-                // extract it to the path we determined above
                 $zip->extractTo($sqlTmp);
                 $zip->close($sqlFileZip);
-                //echo "WOOT! file extracted to $sqlTmp";
             } else {
-                //echo "Doh! I couldn't open file";
                 rmdir($sqlTmp);
                 throw new Exception("Could not open zip file");
             }
         } catch (Exception $e) {
-            //echo 'Error: ',  $e->getMessage(), "\n";
             $html = $e->getMessage();
             header('Content-Type: application/json');
             echo json_encode(
@@ -272,7 +241,6 @@ class indexController extends baseController {
         }
         $command = 'mysql -h '. $servername .' -u '. $username .' -p'. $password .' '. $dbname .' < '.$sqlFile;
         exec( $command, $output = array(), $worked );
-        //var_dump($worked);
         switch($worked) {
             case 0:
                 $html = 'Data import finished successfully';
@@ -328,6 +296,5 @@ class indexController extends baseController {
         }
         return false;
     }
-
 
 }
