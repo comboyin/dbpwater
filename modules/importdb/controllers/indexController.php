@@ -1,13 +1,11 @@
 <?php
 class indexController extends baseController {
-    private $local_server   = 'localhost';
-    private $local_dbname   = 'nbook';
-    private $local_username = 'root';
-    private $local_password = 'lampart';
+    private $ssh_conn;
 
     public function index( $arg =  array() ) {
 
     }
+
     /**
      *
      * @param string $servername
@@ -16,7 +14,7 @@ class indexController extends baseController {
      * @return array  */
     public function connect_to_server($servername, $username, $password) {
         $result = '';
-        $ssh_conn = ssh2_connect($servername , 22);
+        $ssh_conn = $this->ssh_conn = ssh2_connect($servername , 22);
         if ($ssh_conn) {
             //echo "Connection Successful!" . '<br>';
             $result = array("error" => 0, "message" => "");
@@ -29,7 +27,7 @@ class indexController extends baseController {
         $ssh_auth = ssh2_auth_password($ssh_conn, $username, $password);
         if ($ssh_auth) {
             //echo "Authentication Successful!" . '<br>';
-            $result = array("error" => 0, "message" => "", "ssh_conn" => $ssh_conn);
+            $result = array("error" => 0, "message" => "");
         } else {
             $error_auth =  'Authentication failed, incorrect username or password';
             //throw new Exception($error_auth);
@@ -102,11 +100,10 @@ class indexController extends baseController {
 //        $dbname     = "testimport";
 
         try {
-            $ssh_conn_arr = $this->connect_to_server($servername, $username, $password);
-            if($ssh_conn_arr['error'] == 0) {
-                $ssh_conn = $ssh_conn_arr['ssh_conn'];
-            } else {
-                throw new Exception($ssh_conn_arr['message']);
+            $connect_result = $this->connect_to_server($servername, $username, $password);
+            $ssh_conn = $this->ssh_conn;
+            if(!$ssh_conn) {
+                throw new Exception($connect_result['message']);
             }
             $stream = ssh2_exec($ssh_conn, " mysql -e 'show databases;' ");
             stream_set_blocking($stream, true);
@@ -151,7 +148,7 @@ class indexController extends baseController {
         $env        = htmlspecialchars(trim($_POST['env']));
         $check_database = htmlspecialchars(trim($_POST['check_database']));
 
-//        $servername = "172.16.149.2";
+//        $servername = "172.16.149.3";
 //        $username   = "root";
 //        $password   = "lampart";
 //        $dbname     = "testimport";
@@ -159,18 +156,40 @@ class indexController extends baseController {
 
         try {
             $this->setServerStatus(1);
-            $ssh_conn_arr = $this->connect_to_server($servername, $username, $password);
-            if($ssh_conn_arr['error'] == 0) {
-                $ssh_conn = $ssh_conn_arr['ssh_conn'];
-            } else {
-                throw new Exception($ssh_conn_arr['message']);
+            $connect_result = $this->connect_to_server($servername, $username, $password);
+            $ssh_conn = $this->ssh_conn;
+            if(!$ssh_conn) {
+                throw new Exception($connect_result['message']);
             }
 
-            //check disk space
-            $df = disk_free_space("/");
-            if ($df < 2000000000) { //2GB
-                throw new Exception('Not enought disk space');
+            //check disk free space
+//            $df = disk_free_space("/");
+//            if ($df < 2000000000) { //2GB
+//                throw new Exception('Not enought disk space');
+//            }
+            $stream_df = ssh2_exec($ssh_conn, "df -h");
+            stream_set_blocking($stream_df, true);
+            $data_df = "";
+            while ($buf = fread($stream_df, 1048576)) {
+                $data_df .= $buf;
             }
+            if (empty($data_df)) {
+                throw new Exception("Cannot check disk free space");
+            }
+            $data_df_arr = explode('%', $data_df);
+            $df_info_arr = explode(" ", $data_df_arr[1]);
+            $df_info = $df_info_arr[count($df_info_arr)-3];
+            $df = 0;
+            if (strpos($df_info, 'M')) {
+                throw new Exception("Not enough disk space");
+            } elseif (strpos($df_info, 'G')) {
+                $df = intval(str_replace('G', '', $df_info));
+                if ($df < 2) {
+                    throw new Exception("Not enough disk space");
+                }
+            }
+
+            fclose($stream_df);
 
             //get file to import
             //try {
@@ -246,6 +265,9 @@ class indexController extends baseController {
                 )
             );
             $this->setServerStatus(0);
+            //disconnect ssh
+            ssh2_exec($this->ssh_conn, 'exit;');
+            $this->ssh_conn = null;
             exit();
         }
 
@@ -272,6 +294,9 @@ class indexController extends baseController {
         unlink($sqlFile);
         rmdir($sqlTmp);
         $this->setServerStatus(0);
+        //disconnect ssh
+        ssh2_exec($this->ssh_conn, 'exit;');
+        $this->ssh_conn = null;
         exit();
     }
 

@@ -233,7 +233,8 @@ class router
         $route = (empty($_GET['rt'])) ? '' : $_GET['rt'];
 
         if (empty($route)) {
-            $this->module = "login";
+            //$this->module = "login";
+            $this->module = "importdb";
             $this->controller = "index";
             $this->action = "index";
         } else {
@@ -260,7 +261,8 @@ class router
         }
 
         if(empty($this->module)){
-        	$this->controller = 'login';
+        	//$this->controller = 'login';
+            $this->controller = 'importdb';
         }
 
         if (empty($this->controller)) {
