@@ -240,20 +240,6 @@ class indexController extends baseController {
                 rmdir($sqlTmp);
                 throw new Exception("Could not open zip file");
             }
-            sleep(10);
-            $list = scandir($sqlTmp, 1);
-            $sqlFile = $sqlTmp . '/' . $list[0];
-
-            if ($check_database) {
-                ssh2_exec($ssh_conn, " mysql -e 'drop database if exists ".$dbname.";' ");
-                sleep(90);
-                ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
-                sleep(15);
-            } else {
-                ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
-                sleep(15);
-            }
-
         } catch (Exception $e) {
             //echo 'Error: ',  $e->getMessage(), "\n";
             $html = $e->getMessage();
@@ -271,6 +257,19 @@ class indexController extends baseController {
             exit();
         }
 
+        sleep(10);
+        $list = scandir($sqlTmp, 1);
+        $sqlFile = $sqlTmp . '/' . $list[0];
+
+        if ($check_database) {
+            ssh2_exec($ssh_conn, " mysql -e 'drop database if exists ".$dbname.";' ");
+            sleep(90);
+            ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
+            sleep(15);
+        } else {
+            ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
+            sleep(15);
+        }
         $command = 'mysql -h '. $servername .' -u '. $username .' -p'. $password .' '. $dbname .' < '.$sqlFile;
         exec( $command, $output = array(), $worked );
         //var_dump($worked);
