@@ -6,32 +6,6 @@ class indexController extends baseController {
 
     }
 
-    /**
-     *
-     * @param string $servername
-     * @param string $username
-     * @param string $password
-     * @return array  */
-    public function connect_to_server($servername, $username, $password) {
-        $ssh_conn = $this->ssh_conn = ssh2_connect($servername , 22);
-        if ($ssh_conn) {
-            $result = array("error" => 0, "message" => "");
-        } else {
-            $error_conn = 'Connection failed, could not connect to this IP';
-            $result = array("error" => 1, "message" => $error_conn);
-            return $result;
-        }
-        $ssh_auth = ssh2_auth_password($ssh_conn, $username, $password);
-        if ($ssh_auth) {
-            $result = array("error" => 0, "message" => "");
-        } else {
-            $error_auth =  'Authentication failed, incorrect username or password';
-            $result = array("error" => 1, "message" => $error_auth);
-            return $result;
-        }
-        return $result;
-    }
-
     public function getServerStatus() {
         $serverstatusModel = $this->model->get('ServerStatus');
         $server_status     = $serverstatusModel->getServerStatus();
@@ -71,31 +45,25 @@ class indexController extends baseController {
         }
     }
 
-    /**
-     *
-     * @param int $status
-     * @return int|$row_count  */
-    public function setServerStatus($status) {
-        $serverstatusModel = $this->model->get('ServerStatus');
-        $row_count         = $serverstatusModel->setServerStatus($status);
-        return $row_count;
-    }
-
     public function checkDatabase($arg = array())
     {
-        $servername = trim($_POST['ip']);
-        $username   = trim($_POST['user']);
-        $password   = trim($_POST['password']);
-        $dbname     = trim($_POST['dbname']);
+        $host     = trim($_POST['ip']);
+        $username = trim($_POST['user']);
+        $password = trim($_POST['password']);
+        $dbname   = trim($_POST['dbname']);
 
-        if (empty($servername) || empty($username) || empty($password) || empty($dbname)) {
-            throw new Exception("Invalid input");
-        }
         try {
-            $connect_result = $this->connect_to_server($servername, $username, $password);
-            $ssh_conn = $this->ssh_conn;
+            if (empty($host) || empty($username) || empty($password) || empty($dbname)) {
+                throw new Exception("Invalid input");
+            }
+            $connect_result = Common::connect($host, 22);
+            $ssh_conn = $this->ssh_conn = $connect_result['connection'];
             if(!$ssh_conn) {
                 throw new Exception($connect_result['message']);
+            }
+            $auth_result = Common::auth_by_pass($ssh_conn, $username, $password);
+            if($auth_result['error'] == 1) {
+                throw new Exception($auth_result['message']);
             }
             $stream = ssh2_exec($ssh_conn, " mysql -e 'show databases;' ");
             stream_set_blocking($stream, true);
@@ -133,19 +101,29 @@ class indexController extends baseController {
 
     public function importData($arg = array())
     {
-        $servername = htmlspecialchars(trim($_POST['ip']));
-        $username   = htmlspecialchars(trim($_POST['user']));
-        $password   = htmlspecialchars(trim($_POST['password']));
-        $dbname     = htmlspecialchars(trim($_POST['dbname']));
-        $env        = htmlspecialchars(trim($_POST['env']));
+        $host     = htmlspecialchars(trim($_POST['ip']));
+        $username = htmlspecialchars(trim($_POST['user']));
+        $password = htmlspecialchars(trim($_POST['password']));
+        $dbname   = htmlspecialchars(trim($_POST['dbname']));
+        $env      = htmlspecialchars(trim($_POST['env']));
         $check_database = htmlspecialchars(trim($_POST['check_database']));
 
         try {
-            $this->setServerStatus(1);
-            $connect_result = $this->connect_to_server($servername, $username, $password);
-            $ssh_conn = $this->ssh_conn;
+            if (empty($host) || empty($username) || empty($password) || empty($dbname) || empty($env)) {
+                throw new Exception("Invalid input");
+            }
+            //$this->setServerStatus(1);
+            /*@var $serverstatusModel serverstatusModel */
+            $serverstatusModel = $this->model->get('ServerStatus');
+            $serverstatusModel->setServerStatus(1);
+            $connect_result = Common::connect($host, 22);
+            $ssh_conn = $this->ssh_conn = $connect_result['connection'];
             if(!$ssh_conn) {
                 throw new Exception($connect_result['message']);
+            }
+            $auth_result = Common::auth_by_pass($ssh_conn, $username, $password);
+            if($auth_result['error'] == 1) {
+                throw new Exception($auth_result['message']);
             }
 
             $stream_df = ssh2_exec($ssh_conn, "df -h");
@@ -175,22 +153,22 @@ class indexController extends baseController {
             //get file to import
             switch ($env) {
                 case "dev":
-                    $fileName = $this->getLatestDataFile('dev');
+                    $fileName = Common::getLatestDataFile('dev');
                     break;
                 case "pre":
-                    $fileName = $this->getLatestDataFile('pre');
+                    $fileName = Common::getLatestDataFile('pre');
                     break;
                 case "debug1":
-                    $fileName = $this->getLatestDataFile('debug1');
+                    $fileName = Common::getLatestDataFile('debug1');
                     break;
                 case "debug2":
-                    $fileName = $this->getLatestDataFile('debug2');
+                    $fileName = Common::getLatestDataFile('debug2');
                     break;
                 case "debug3":
-                    $fileName = $this->getLatestDataFile('debug3');
+                    $fileName = Common::getLatestDataFile('debug3');
                     break;
                 case "test":
-                    $fileName = $this->getLatestDataFile('test');
+                    $fileName = Common::getLatestDataFile('test');
                     break;
                 default:
                     throw new Exception("Unknown environment");
@@ -219,7 +197,8 @@ class indexController extends baseController {
                     "content" => $html
                 )
             );
-            $this->setServerStatus(0);
+            //$this->setServerStatus(0);
+            $serverstatusModel->setServerStatus(0);
             //disconnect ssh
             ssh2_exec($this->ssh_conn, 'exit;');
             $this->ssh_conn = null;
@@ -239,7 +218,7 @@ class indexController extends baseController {
             ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
             sleep(15);
         }
-        $command = 'mysql -h '. $servername .' -u '. $username .' -p'. $password .' '. $dbname .' < '.$sqlFile;
+        $command = 'mysql -h '. $host .' -u '. $username .' -p'. $password .' '. $dbname .' < '.$sqlFile;
         exec( $command, $output = array(), $worked );
         switch($worked) {
             case 0:
@@ -250,6 +229,9 @@ class indexController extends baseController {
                 $html= 'There was an error during import';
                 $error = 1;
                 break;
+            default:
+                $html= 'Unknown error';
+                $error = 1;
         }
         header('Content-Type: application/json');
         echo json_encode(
@@ -260,41 +242,12 @@ class indexController extends baseController {
         );
         unlink($sqlFile);
         rmdir($sqlTmp);
-        $this->setServerStatus(0);
+        //$this->setServerStatus(0);
+        $serverstatusModel->setServerStatus(0);
         //disconnect ssh
         ssh2_exec($this->ssh_conn, 'exit;');
         $this->ssh_conn = null;
         exit();
-    }
-
-    function getLatestDataFile($env = '') {
-        $dir  = __SITE_PATH . '/sql/';
-        $file_list = scandir($dir, 1);
-        $data_files = array();
-        foreach ($file_list as $item) {
-            $find = $env.'.sql';
-            if (strpos($item, $find) !== false ) {
-                $data_files[] = $item;
-            }
-        }
-        $max = 0;
-        $file = '';
-        if (!empty($data_files)) {
-            foreach ($data_files as $value) {
-                $file_path = $dir.$value;
-                $creation_date = filectime($file_path);
-                if ($creation_date > $max) {
-                    $max = $creation_date;
-                    $file = $value;
-                }
-            }
-        } else {
-            throw new Exception('Data file does not exist');
-        }
-        if (!empty($file)) {
-            return $file;
-        }
-        return false;
     }
 
 }
