@@ -55,6 +55,9 @@ error_reporting(E_ERROR | E_PARSE);
  	}else if(file_exists(__SITE_PATH . '/entity/' . $class.".php")){
  		require_once(__SITE_PATH . '/entity/' . $class.".php");
  	}
+ 	else if(file_exists(__SITE_PATH . '/common/' . $class.".php")){
+        require_once(__SITE_PATH . '/common/' . $class.".php");
+    }
  }
 
  /*** a new registry object ***/
