@@ -218,7 +218,7 @@ class indexController extends baseController {
             ssh2_exec($ssh_conn, " mysql -e 'create database ".$dbname.";' ");
             sleep(15);
         }
-        $command = 'mysql -h '. $host .' -u '. $username .' -p'. $password .' '. $dbname .' < '.$sqlFile;
+        $command = 'mysql -h '. $host .' -u '. $username .' -p'. $password .' --max_allowed_packet=1G '. $dbname .' < '.$sqlFile;
         exec( $command, $output = array(), $worked );
         switch($worked) {
             case 0:
