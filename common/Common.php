@@ -63,7 +63,9 @@ class Common {
             $data .= $buf;
         }
         fclose($stream);
-        return array('success' => true, 'data' => $data);
+//        $stream_out = ssh2_fetch_stream($stream, SSH2_STREAM_STDIO);
+//        $data       = stream_get_contents($stream_out);
+        return array('success' => true, 'stream' => $stream, 'data' => $data);
     }
 
     /**
@@ -99,6 +101,31 @@ class Common {
             return $file;
         }
         return false;
+    }
+
+    /**
+     *
+     * @param string $file_path
+     * @return array $config
+     */
+    static public function getConfigFromFile($file_path) {
+        $config_file = $file_path;
+        if (!file_exists($config_file)) {
+            throw new Exception('Cannot open config file');
+        }
+        $config_lines = file($config_file);
+        $config = array();
+        foreach ($config_lines as $item) {
+            if (!empty($item)) {
+                $tmp_arr = explode(":", $item);
+                $config[] = array('table'=>trim($tmp_arr[0]), 'get_data'=>trim($tmp_arr['1']));
+            }
+        }
+        return $config;
+    }
+
+    static public function getConfigFromDatabase() {
+
     }
 
 }

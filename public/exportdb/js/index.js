@@ -35,27 +35,27 @@ jQuery(document).ready(function($){
     $('#exportDB').validate({
         ignore: [],
         rules: {
-            host: {
-                required: true
-            },
-            user: {
-                required: true
-            },
-            password: {
-                required: true
-            },
-            dbname: {
-                required: true,
-                validName: true
-            },
+            // host: {
+            //     required: true
+            // },
+            // user: {
+            //     required: true
+            // },
+            // password: {
+            //     required: true
+            // },
+            // dbname: {
+            //     required: true,
+            //     validName: true
+            // },
             env: {
                 required: true
             }
         },
         messages: {
-            host: "Invalid input",
-            user: "Invalid input",
-            password: "Invalid input",
+            // host: "Invalid input",
+            // user: "Invalid input",
+            // password: "Invalid input",
             dbname: "Invalid input"
             //env: "Invalid input"
         },

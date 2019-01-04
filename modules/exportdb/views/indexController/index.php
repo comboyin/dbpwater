@@ -62,7 +62,6 @@
                     <div class="form-group row">
                         <div class="col-sm-offset-2 col-sm-10 submit-wrapper">
                             <button type="button" class="btn btn-default btn-export" value="submit">Export</button>
-<!--                            <button type="submit" class="btn btn-default btn-import" value="submit">Import</button>-->
                         </div>
                     </div>
                     <input type="hidden" name="check_database" id="checkDatabase" value="" >

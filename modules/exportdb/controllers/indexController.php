@@ -2,248 +2,211 @@
 class indexController extends baseController {
     private $ssh_host = '';
     private $ssh_port = 22;
-    private $ssh_auth_user = '';
-    private $ssh_auth_pub = '/home/username/.ssh/id_rsa.pub';
-    private $ssh_auth_priv = '/home/username/.ssh/id_rsa';
-    private $ssh_auth_pass = null;
+    private $ssh_auth_user = 'root';
+    private $ssh_auth_pub  = '/root/.ssh/id_rsa.pub';
+    private $ssh_auth_priv = '/root/.ssh/id_rsa';
+    private $ssh_auth_pass = '';
     private $connection;
 
     public function index( $arg =  array() ) {
 
     }
 
-    public function connect() {
+    public function exportData() {
+        $environment      = $this->registry->environment;
+        $server_db_name    = $this->registry->server_db_name;
+        $server_db_pass    = $this->registry->server_db_pass;
+        $server_auth_user = $this->registry->server_auth_user;
         $env = htmlspecialchars(trim($_POST['env']));
-        switch ($env) {
-            case "dev":
-                break;
-            case "pre":
-                break;
-            case "debug1":
-                break;
-            case "debug2":
-                break;
-            case "debug3":
-                break;
-            case "test":
-                break;
-            default:
-                throw new Exception("Unknown environment");
-        }
-        if (!($this->connection = ssh2_connect($this->ssh_host, $this->ssh_port))) {
-            throw new Exception('Cannot connect to server');
-        }
-    }
 
-    public function connectdata__($servername, $dbname, $username, $password) {
+        $config_file  = __SITE_PATH . '/sql/config_data.txt';
+        $alldata_file = 'alldata.txt';
+        $nodata_file  = 'nodata.txt';
+        $d = date("Y_m_d_H_i_s");
 
         try {
-            $pdo = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-            $pdo->exec("set names utf8");
-            // set the PDO error mode to exception
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            //echo "Connected successfully";
-            return array('error'=>0, 'message'=>'', 'pdo'=>$pdo);
-        }
-        catch(PDOException $e)
-        {
-            //echo "Database connection failed: " . $e->getMessage();
-//            $html = $e->getMessage();
-//            header('Content-Type: application/json');
-//            echo json_encode(
-//                array(
-//                    "error" => 1,
-//                    "content" => $html
-//                )
-//            );
-//            exit();
-            return array('error'=>1, 'message'=>$e->getMessage());
-        }
-    }
-
-    public function exportData__() {
-        $servername = htmlspecialchars(trim($_POST['host']));
-        $username   = htmlspecialchars(trim($_POST['user']));
-        $password   = htmlspecialchars(trim($_POST['password']));
-        $dbname     = htmlspecialchars(trim($_POST['dbname']));
-        $env        = htmlspecialchars(trim($_POST['env']));
-
-//        $servername = '172.16.149.2';
-//        $username   = 'root';
-//        $password   = 'lampart';
-//        $dbname     = 'test2';
-//        $env        = 'dev';
-
-        try {
-            $connect = $this->connectdata($servername, $dbname, $username, $password);
-            $pdo = $connect['pdo'];
-            if(!empty($pdo)) {
-                //echo 'Connected successfully<br>';
-//                $html = 'Connected successfully';
-//                header('Content-Type: application/json');
-//                echo json_encode(
-//                    array(
-//                        "error" => 0,
-//                        "content" => $html
-//                    )
-//                );
-//                exit();
-
-                $config_file = __SITE_PATH . '/sql/config_data.txt';
-                if (!file_exists($config_file)) {
-                    throw new Exception('Cannot open config file');
-                }
-                $config_lines = file($config_file);
-                //echo '<pre>';var_dump($config_lines);echo '</pre><br>';
-                $tables = array();
-                foreach ($config_lines as $config) {
-                    $tmp_arr = explode(":", $config);
-                    //echo '<pre>';var_dump($tmp_arr);echo '</pre><br>';
-                    $tables[] = array('table'=>$tmp_arr[0], 'get_data'=>$tmp_arr['1']);
-                }
-                $content = '';
-                foreach ($tables as $item) {
-                    try {
-                        $content .= 'DROP TABLE IF EXISTS '."`".$item['table']."`".';';
-                        $sql1 = 'SHOW CREATE TABLE '."`".$item['table']."`";
-                        //$sql1 = 'select * from mtk_content';
-                        $sth = $pdo->prepare($sql1);
-                        $sth->execute();
-                        $result = $sth->fetch(PDO::FETCH_ASSOC);
-                        $content .= "\n\n".$result['Create Table'].";\n\n";
-                    }
-                    catch (\PDOException $e) {
-                        $html = $e->getMessage();
-                        header('Content-Type: application/json');
-                        echo json_encode(
-                            array(
-                                "error" => 1,
-                                "content" => $html
-                            )
-                        );
-                        $pdo = null;
-                        exit();
-                    }
-
-                    if ($item['get_data'] == -1) {
-                        try {
-                            $sql2 = 'SHOW COLUMNS FROM '."`".$item['table']."`";
-                            $sth = $pdo->prepare($sql2);
-                            $sth->execute();
-                            $column_names = $sth->fetchAll(PDO::FETCH_COLUMN);
-                            $column_count = count($column_names);
-
-                            $sql3 = 'SELECT * FROM '.$item['table'];
-                            $sth = $pdo->prepare($sql3);
-                            $sth->execute();
-                        }
-                        catch (\PDOException $e) {
-                            $html = $e->getMessage();
-                            header('Content-Type: application/json');
-                            echo json_encode(
-                                array(
-                                    "error" => 1,
-                                    "content" => $html
-                                )
-                            );
-                            $pdo = null;
-                            exit();
-                        }
-
-                        //$row_count = $sth->rowCount();
-                        $result = $sth->fetchAll();
-                        foreach ($result as $value) {
-                            $head = '';
-                            $head .= "INSERT INTO " . "`" .$item['table']. "` (" ;
-                            foreach ($column_names as $key=>$column_name) {
-                                if ($key != $column_count - 1) {
-                                    $head .= "`".$column_name."`, ";
-                                } else {
-                                    $head .= "`".$column_name."`";
-                                }
-                            }
-                            $head .=") \n";
-                            $content .= $head;
-                            $content .= "VALUES (";
-                            foreach ($column_names as $key=>$column_name) {
-                                if (!empty($value[$column_name])) {
-                                    $text = addslashes($value[$column_name]);
-                                    $content  .= "'".$text."'";
-                                } else {
-                                    $content .= "''";
-                                }
-
-                                if($key < $column_count-1) {
-                                    $content .=",";
-                                }
-                            }
-                            $content .= ");\n\n";
-                        }
-                    }
-
-                }
-//                echo get_class_methods($pdo);
-//                echo '<pre>';var_dump($pdo);echo '</pre><br>';
-//                echo '<pre>columns: ';var_dump($column_names);echo '</pre><br>';
-//                echo '<pre>';var_dump($tables);echo '</pre><br>';
-//                echo '<pre>';var_dump($row_count);echo '</pre><br>';
-//                echo '<pre>result: ';var_dump($result);echo '</pre><br>';
-                $sql_file = __SITE_PATH . '/sql/data.sql';
-                file_put_contents($sql_file, $content);
-
-                //Create zip file
-                $t = time();
-                $d = date("Y_m_d_H_i_s", $t);
-                switch ($env) {
-                    case "dev":
-                        $zip_file = __SITE_PATH . '/sql/dev.sql_'.$d.'.zip';
-                        break;
-                    case "pre":
-                        $zip_file = __SITE_PATH . '/sql/pre.sql_'.$d.'.zip';
-                        break;
-                    case "debug1":
-                        $zip_file = __SITE_PATH . '/sql/debug1.sql_'.$d.'.zip';
-                        break;
-                    case "debug2":
-                        $zip_file = __SITE_PATH . '/sql/debug2.sql_'.$d.'zip';
-                        break;
-                    case "debug3":
-                        $zip_file = __SITE_PATH . '/sql/debug3.sql_'.$d.'.zip';
-                        break;
-                    case "test":
-                        $zip_file = __SITE_PATH . '/sql/test.sql_'.$d.'.zip';
-                        break;
-                    default:
-                        throw new Exception("Unknown environment");
-                }
-                //$zip_file = __SITE_PATH . '/sql/dev.sql_'.$d.'.zip';
-
-                $zip = new ZipArchive();
-                if ($zip->open($zip_file, ZipArchive::CREATE) === TRUE) {
-                    $zip->addFile($sql_file, 'data.sql');
-                    $zip->close();
-                    $pdo = null;
-                    unlink($sql_file);
-                    $html = 'Data export finished successfully';
-                    header('Content-Type: application/json');
-                    echo json_encode(
-                        array(
-                            "error" => 0,
-                            "content" => $html
-                        )
-                    );
-                    exit();
-                } else {
-                    $pdo = null;
-                    unlink($sql_file);
-                    throw new Exception('Cannot create zip file');
-                }
-
-            } else {
-                throw new Exception($connect['message']);
+            switch ($env) {
+                case "dev":
+                    $this->ssh_host = $environment['dev'];
+                    $db_name = $server_db_name['dev'];
+                    $db_pass = $server_db_pass['dev'];
+                    $auth_user =  $server_auth_user['dev'];
+                    $sql_file = 'dev_'.$d.'.sql';
+                    $zip_file = 'dev.sql_'.$d.'.zip';
+                    break;
+                case "pre":
+                    $this->ssh_host = $environment['pre'];
+                    $db_name = $server_db_name['pre'];
+                    $db_pass = $server_db_pass['pre'];
+                    $auth_user =  $server_auth_user['pre'];
+                    $sql_file = 'pre_'.$d.'.sql';
+                    $zip_file = 'pre.sql_'.$d.'.zip';
+                    break;
+                case "debug1":
+                    $this->ssh_host = $environment['debug1'];
+                    $db_name = $server_db_name['debug1'];
+                    $db_pass = $server_db_pass['debug1'];
+                    $auth_user =  $server_auth_user['debug1'];
+                    $sql_file = 'debug1_'.$d.'.sql';
+                    $zip_file = 'debug1.sql_'.$d.'.zip';
+                    break;
+                case "debug2":
+                    $this->ssh_host = $environment['debug2'];
+                    $db_name = $server_db_name['debug2'];
+                    $db_pass = $server_db_pass['debug2'];
+                    $auth_user =  $server_auth_user['debug2'];
+                    $sql_file = 'debug2_'.$d.'.sql';
+                    $zip_file = 'debug2.sql_'.$d.'.zip';
+                    break;
+                case "debug3":
+                    $this->ssh_host = $environment['debug3'];
+                    $db_name = $server_db_name['debug3'];
+                    $db_pass = $server_db_pass['debug3'];
+                    $auth_user =  $server_auth_user['debug3'];
+                    $sql_file = 'debug3_'.$d.'.sql';
+                    $zip_file = 'debug3.sql_'.$d.'.zip';
+                    break;
+                case "test":
+                    $this->ssh_host = $environment['test'];
+                    $db_name = $server_db_name['test'];
+                    $db_pass = $server_db_pass['test'];
+                    $auth_user =  $server_auth_user['test'];
+                    $sql_file = 'test_'.$d.'.sql';
+                    $zip_file = 'test.sql_'.$d.'.zip';
+                    $config_file  = __SITE_PATH . '/sql/test_config_data.txt';
+                    break;
+                default:
+                    throw new Exception("Unknown environment");
             }
-        } catch (Exception $e) {
-            //echo $e->getMessage();
+            $connect_result = Common::connect($this->ssh_host, 22);
+            $ssh_conn = $this->connection = $connect_result['connection'];
+            if(!$ssh_conn) {
+                throw new Exception($connect_result['message']);
+            }
+            $auth_result = Common::auth_by_pass($ssh_conn, $auth_user, 'lampart');
+            if($auth_result['error'] == 1) {
+                throw new Exception($auth_result['message']);
+            }
+            $config = Common::getConfigFromFile($config_file);
+            if (empty($config)) {
+                throw new Exception("Config error");
+            }
+
+            $alldata_table_arr = array();
+            $nodata_table_arr  = array();
+            foreach ($config as $config_item) {
+                if ($config_item['get_data']) {
+                    $alldata_table_arr[] = $config_item['table'];
+                } else {
+                    $nodata_table_arr[] = $config_item['table'];
+                }
+            }
+            $flag1 = $flag2 = false;
+            if (count($alldata_table_arr) > 200) {
+                $alldata_table_arr = array_chunk($alldata_table_arr, 200);
+                $alldata_table_str_1 = implode(" ", $alldata_table_arr[0]);
+                $alldata_table_str_2 = implode(" ", $alldata_table_arr[1]);
+                $alldata_file_1 = 'alldata1.txt';
+                $cmd_alldata_1 = 'sudo mysqldump -u'.$this->ssh_auth_user.' -p'.$db_pass.' --max_allowed_packet=1G '.$db_name.' '.$alldata_table_str_1.' > "'.$alldata_file_1.'"';
+                Common::exec($ssh_conn, $cmd_alldata_1);
+                $alldata_file_2 = 'alldata2.txt';
+                $cmd_alldata_2 = 'sudo mysqldump -u'.$this->ssh_auth_user.' -p'.$db_pass.' --max_allowed_packet=1G '.$db_name.' '.$alldata_table_str_2.' > "'.$alldata_file_2.'"';
+                Common::exec($ssh_conn, $cmd_alldata_2);
+                $cmd_join_alldata = 'sudo cat '.$alldata_file_1.' '.$alldata_file_2.' > '.$alldata_file.'; ';
+                Common::exec($ssh_conn, $cmd_join_alldata );
+                $flag1 = true;
+            } else {
+                if (count($alldata_table_arr) > 0) {
+                    $alldata_table_str = implode(" ", $alldata_table_arr);
+                    $cmd_alldata = 'sudo mysqldump -u'.$this->ssh_auth_user.' -p'.$db_pass.' --max_allowed_packet=1G '.$db_name.' '.$alldata_table_str.' > "'.$alldata_file.'"';
+                    Common::exec($ssh_conn, $cmd_alldata);
+                    $flag1 = true;
+                }
+            }
+            if (count($nodata_table_arr) > 200) {
+                $nodata_table_arr = array_chunk($alldata_table_arr, 200);
+                $nodata_table_str_1 = implode(" ", $nodata_table_arr[0]);
+                $nodata_table_str_2 = implode(" ", $nodata_table_arr[1]);
+                $nodata_file_1 = 'nodata1.txt';
+                $cmd_nodata_1 = 'sudo mysqldump -u'.$this->ssh_auth_user.' -p'.$db_pass.' --max_allowed_packet=1G --no-data '.$db_name.' '.$nodata_table_str_1.' > "'.$nodata_file_1.'"';
+                Common::exec($ssh_conn, $cmd_nodata_1);
+                $nodata_file_2 = 'nodata2.txt';
+                $cmd_nodata_2 = 'sudo mysqldump -u'.$this->ssh_auth_user.' -p'.$db_pass.' --max_allowed_packet=1G --no-data '.$db_name.' '.$nodata_table_str_2.' > "'.$nodata_file_2.'"';
+                Common::exec($ssh_conn, $cmd_nodata_2);
+                $cmd_join_nodata = 'sudo cat '.$nodata_file_1.' '.$nodata_file_2.' > '.$nodata_file.'; ';
+                $cmd_join_nodata .= 'sudo rm -rf '.$nodata_file_1.'; ';
+                $cmd_join_nodata .= 'sudo rm -rf '.$nodata_file_2.'; ';
+                Common::exec($ssh_conn, $cmd_join_nodata );
+                $flag2 = true;
+            } else {
+                if (count($nodata_table_arr) > 0) {
+                    $nodata_table_str = implode(" ", $nodata_table_arr);
+                    $cmd_nodata = 'sudo mysqldump -u' . $this->ssh_auth_user . ' -p' . $db_pass . ' --max_allowed_packet=1G --no-data ' . $db_name . ' ' . $nodata_table_str . ' > "' . $nodata_file . '"';
+                    Common::exec($ssh_conn, $cmd_nodata);
+                    $flag2 = true;
+                }
+            }
+            if ($flag1 && $flag2) {
+                $cmd_join_files = 'sudo cat '.$alldata_file.' '.$nodata_file.' > '.$sql_file.'; ';
+                $cmd_join_files .= 'sudo rm -rf '.$alldata_file.'; ';
+                $cmd_join_files .= 'sudo rm -rf '.$nodata_file.'; ';
+                $cmd_join_files .= 'sudo zip -r '.$zip_file.' '.$sql_file.'; ';
+                $cmd_join_files .= 'sudo rm -rf '.$sql_file.';';
+                $run_cmd_joinfiles = Common::exec($ssh_conn, $cmd_join_files);
+            } elseif ($flag1) {
+                $cmd_zip_file = 'mv '.$alldata_file.' '.$sql_file.'; ';
+                $cmd_zip_file .= 'sudo zip -r '.$zip_file.' '.$sql_file.'; ';
+                $cmd_zip_file .= 'sudo rm -rf '.$sql_file.';';
+                $run_cmd_zip_file = Common::exec($ssh_conn, $cmd_zip_file);
+            } elseif ($flag2) {
+                $cmd_zip_file = 'mv '.$nodata_file.' '.$sql_file.'; ';
+                $cmd_zip_file .= 'sudo zip -r '.$zip_file.' '.$sql_file.'; ';
+                $cmd_zip_file .= 'sudo rm -rf '.$sql_file.';';
+                $run_cmd_zip_file = Common::exec($ssh_conn, $cmd_zip_file);
+            } else {
+                throw new Exception("Unable to create file: $sql_file");
+            }
+            //Copy file from the remote server to the local filesystem
+            $local_sql_folder = __SITE_PATH . '/sql';
+            $sftp_conn = ssh2_sftp($this->connection);
+            if (!$sftp_conn) {
+                throw new Exception('Unable to create SFTP connection.');
+            }
+            $remote_stream = fopen("ssh2.sftp://$sftp_conn/root/$zip_file", 'r');
+            if (!$remote_stream) {
+                throw new Exception("Unable to open remote file: $zip_file");
+            }
+            $local_stream = fopen("$local_sql_folder/$zip_file", 'w');
+            if (!$local_stream) {
+                throw new Exception("Unable to open local file for writing: $local_sql_folder/$zip_file");
+            }
+            $read = 0;
+            $file_size = filesize("ssh2.sftp://$sftp_conn/root/$zip_file");
+            while ($read < $file_size && ($buffer = fread($remote_stream, $file_size - $read))) {
+                // Increase bytes read
+                $read += strlen($buffer);
+                // Write to local file
+                if (fwrite($local_stream, $buffer) === FALSE) {
+                    throw new Exception("Unable to write to local file: $local_sql_folder/$zip_file");
+                }
+            }
+            // Close streams
+            fclose($local_stream);
+            fclose($remote_stream);
+            //disconnect ssh
+            ssh2_exec($this->connection, 'exit;');
+            $this->connection = null;
+            $html = 'Data export finished successfully';
+            header('Content-Type: application/json');
+            echo json_encode(
+                array(
+                    "error" => 0,
+                    "content" => $html
+                )
+            );
+            exit();
+        }
+        catch (Exception $e) {
             $html = $e->getMessage();
             header('Content-Type: application/json');
             echo json_encode(
@@ -252,9 +215,11 @@ class indexController extends baseController {
                     "content" => $html
                 )
             );
+            //disconnect ssh
+            ssh2_exec($this->connection, 'exit;');
+            $this->connection = null;
             exit();
         }
-
     }
 
 }

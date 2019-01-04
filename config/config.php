@@ -1,5 +1,38 @@
 <?php
 $config = array (
+        //environment config
+        'environment' => array(
+            'dev'    => '172.16.149.3',
+            'pre'    => '',
+            'debug1' => '',
+            'debug2' => '',
+            'debug3' => '',
+            'test'   => '172.16.149.3'
+        ),
+        'server_db_name'  => array(
+            'dev'    => 'pwater',
+            'pre'    => 'pwater',
+            'debug1' => 'pwater',
+            'debug2' => 'pwater',
+            'debug3' => 'pwater',
+            'test'   => 'test'
+        ),
+        'server_db_pass'  => array(
+            'dev'    => 'lampart',
+            'pre'    => 'lampart',
+            'debug1' => 'lampart',
+            'debug2' => 'lampart',
+            'debug3' => 'lampart',
+            'test'   => 'lampart'
+        ),
+        'server_auth_user'  => array(
+            'dev'    => 'root',
+            'pre'    => 'root',
+            'debug1' => 'root',
+            'debug2' => 'root',
+            'debug3' => 'root',
+            'test'   => 'root'
+        ),
 		// database config
 		'database' => array (
 			/*  'db_servername' => "172.16.100.3",
@@ -90,8 +123,11 @@ $config = array (
                         ),
                         "exportdb"=>array(
                             "index" => array(
-                                "all" => "all"
+                                "all" => array(1,2,3)
                             ),
+                            "action" => array(
+                                "all" => array(1,2,3)
+                            )
                         ),
 						"error" => array(
 							"error404" => array(
