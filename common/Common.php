@@ -6,8 +6,12 @@ class Common {
      * @param int $port
      * @return array
      */
-    static public function connect($host, $port) {
-        $ssh_conn = ssh2_connect($host, $port);
+    static public function connect($host, $port, $method = array()) {
+        if (!empty($method)) {
+            $ssh_conn = ssh2_connect($host, $port, $method);
+        } else {
+            $ssh_conn = ssh2_connect($host, $port);
+        }
         if ($ssh_conn) {
             $result = array("error" => 0, "message" => "Connected to server", "connection" => $ssh_conn);
         } else {
@@ -29,6 +33,25 @@ class Common {
             $result = array("error" => 0, "message" => "Authenticated");
         } else {
             $result = array("error" => 1, "message" => "Authentication failed, incorrect username or password");
+        }
+        return $result;
+    }
+
+    /**
+     *
+     * @param resource $connection
+     * @param string $username
+     * @param string $pubkeyfile
+     * @param string $privkeyfile
+     * @param string $passphrase
+     * @return array $result
+     */
+    static public function auth_by_public_key($connection, $username, $pubkeyfile, $privkeyfile, $passphrase = '') {
+        $ssh_auth = ssh2_auth_pubkey_file($connection, $username, $pubkeyfile, $privkeyfile, $passphrase);
+        if ($ssh_auth) {
+            $result = array("error" => 0, "message" => "Public Key Authentication Successful");
+        } else {
+            $result = array("error" => 1, "message" => "Public Key Authentication Failed");
         }
         return $result;
     }

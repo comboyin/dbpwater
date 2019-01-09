@@ -25,6 +25,14 @@ $config = array (
             'debug3' => 'lampart',
             'test'   => 'lampart'
         ),
+        'server_passphrase'  => array(
+            'dev'    => 'lampart',
+            'pre'    => 'lampart',
+            'debug1' => 'lampart',
+            'debug2' => 'lampart',
+            'debug3' => 'lampart',
+            'test'   => 'lampart'
+        ),
         'server_auth_user'  => array(
             'dev'    => 'root',
             'pre'    => 'root',
@@ -32,6 +40,10 @@ $config = array (
             'debug2' => 'root',
             'debug3' => 'root',
             'test'   => 'root'
+        ),
+        'ssh_keyfiles'  => array(
+            'pubkeyfile'  =>  __SITE_PATH . '/assets/ssh_keys/id_rsa.pub',
+            'privkeyfile' => __SITE_PATH . '/assets/ssh_keys/id_rsa'
         ),
 		// database config
 		'database' => array (

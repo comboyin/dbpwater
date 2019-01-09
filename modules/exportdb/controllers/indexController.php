@@ -2,10 +2,6 @@
 class indexController extends baseController {
     private $ssh_host = '';
     private $ssh_port = 22;
-    private $ssh_auth_user = 'root';
-    private $ssh_auth_pub  = '/root/.ssh/id_rsa.pub';
-    private $ssh_auth_priv = '/root/.ssh/id_rsa';
-    private $ssh_auth_pass = '';
     private $connection;
 
     public function index( $arg =  array() ) {
@@ -13,10 +9,14 @@ class indexController extends baseController {
     }
 
     public function exportData() {
-        $environment      = $this->registry->environment;
+        $environment       = $this->registry->environment;
         $server_db_name    = $this->registry->server_db_name;
         $server_db_pass    = $this->registry->server_db_pass;
-        $server_auth_user = $this->registry->server_auth_user;
+        $server_passphrase = $this->registry->server_passphrase;
+        $server_auth_user  = $this->registry->server_auth_user;
+        $ssh_keyfiles      = $this->registry->ssh_keyfiles;
+        $pubkeyfile        = $ssh_keyfiles['pubkeyfile'];
+        $privkeyfile       = $ssh_keyfiles['privkeyfile'];
         $env = htmlspecialchars(trim($_POST['env']));
 
         $config_file  = __SITE_PATH . '/sql/config_data.txt';
@@ -29,6 +29,7 @@ class indexController extends baseController {
                 case "dev":
                     $this->ssh_host = $environment['dev'];
                     $db_name = $server_db_name['dev'];
+                    $passphrase = $server_passphrase['dev'];
                     $db_pass = $server_db_pass['dev'];
                     $auth_user =  $server_auth_user['dev'];
                     $sql_file = 'dev_'.$d.'.sql';
@@ -38,6 +39,7 @@ class indexController extends baseController {
                     $this->ssh_host = $environment['pre'];
                     $db_name = $server_db_name['pre'];
                     $db_pass = $server_db_pass['pre'];
+                    $passphrase = $server_passphrase['pre'];
                     $auth_user =  $server_auth_user['pre'];
                     $sql_file = 'pre_'.$d.'.sql';
                     $zip_file = 'pre.sql_'.$d.'.zip';
@@ -46,6 +48,7 @@ class indexController extends baseController {
                     $this->ssh_host = $environment['debug1'];
                     $db_name = $server_db_name['debug1'];
                     $db_pass = $server_db_pass['debug1'];
+                    $passphrase = $server_passphrase['debug1'];
                     $auth_user =  $server_auth_user['debug1'];
                     $sql_file = 'debug1_'.$d.'.sql';
                     $zip_file = 'debug1.sql_'.$d.'.zip';
@@ -54,6 +57,7 @@ class indexController extends baseController {
                     $this->ssh_host = $environment['debug2'];
                     $db_name = $server_db_name['debug2'];
                     $db_pass = $server_db_pass['debug2'];
+                    $passphrase = $server_passphrase['debug2'];
                     $auth_user =  $server_auth_user['debug2'];
                     $sql_file = 'debug2_'.$d.'.sql';
                     $zip_file = 'debug2.sql_'.$d.'.zip';
@@ -62,6 +66,7 @@ class indexController extends baseController {
                     $this->ssh_host = $environment['debug3'];
                     $db_name = $server_db_name['debug3'];
                     $db_pass = $server_db_pass['debug3'];
+                    $passphrase = $server_passphrase['debug3'];
                     $auth_user =  $server_auth_user['debug3'];
                     $sql_file = 'debug3_'.$d.'.sql';
                     $zip_file = 'debug3.sql_'.$d.'.zip';
@@ -70,6 +75,7 @@ class indexController extends baseController {
                     $this->ssh_host = $environment['test'];
                     $db_name = $server_db_name['test'];
                     $db_pass = $server_db_pass['test'];
+                    $passphrase = $server_passphrase['test'];
                     $auth_user =  $server_auth_user['test'];
                     $sql_file = 'test_'.$d.'.sql';
                     $zip_file = 'test.sql_'.$d.'.zip';
@@ -78,12 +84,19 @@ class indexController extends baseController {
                 default:
                     throw new Exception("Unknown environment");
             }
-            $connect_result = Common::connect($this->ssh_host, 22);
+            $connect_result = Common::connect($this->ssh_host, $this->ssh_port, array('hostkey'=>'ssh-rsa'));
             $ssh_conn = $this->connection = $connect_result['connection'];
             if(!$ssh_conn) {
                 throw new Exception($connect_result['message']);
             }
-            $auth_result = Common::auth_by_pass($ssh_conn, $auth_user, 'lampart');
+            //$auth_result = Common::auth_by_pass($ssh_conn, $auth_user, 'lampart');
+            if (!file_exists($pubkeyfile) || !is_readable($pubkeyfile)) {
+                throw new \Exception("Public key file stored in '{$pubkeyfile}' was not found or is not readable");
+            }
+            if (!file_exists($privkeyfile) || !is_readable($privkeyfile)) {
+                throw new \Exception("Private key file stored in '{$privkeyfile}' was not found or is not readable");
+            }
+            $auth_result = Common::auth_by_public_key($ssh_conn, $auth_user, $pubkeyfile, $privkeyfile, $passphrase);
             if($auth_result['error'] == 1) {
                 throw new Exception($auth_result['message']);
             }
@@ -107,10 +120,10 @@ class indexController extends baseController {
                 $alldata_table_str_1 = implode(" ", $alldata_table_arr[0]);
                 $alldata_table_str_2 = implode(" ", $alldata_table_arr[1]);
                 $alldata_file_1 = 'alldata1.txt';
-                $cmd_alldata_1 = 'sudo mysqldump -u'.$this->ssh_auth_user.' -p'.$db_pass.' --max_allowed_packet=1G '.$db_name.' '.$alldata_table_str_1.' > "'.$alldata_file_1.'"';
+                $cmd_alldata_1 = 'sudo mysqldump -u'.$auth_user.' -p'.$db_pass.' --max_allowed_packet=1G '.$db_name.' '.$alldata_table_str_1.' > "'.$alldata_file_1.'"';
                 Common::exec($ssh_conn, $cmd_alldata_1);
                 $alldata_file_2 = 'alldata2.txt';
-                $cmd_alldata_2 = 'sudo mysqldump -u'.$this->ssh_auth_user.' -p'.$db_pass.' --max_allowed_packet=1G '.$db_name.' '.$alldata_table_str_2.' > "'.$alldata_file_2.'"';
+                $cmd_alldata_2 = 'sudo mysqldump -u'.$auth_user.' -p'.$db_pass.' --max_allowed_packet=1G '.$db_name.' '.$alldata_table_str_2.' > "'.$alldata_file_2.'"';
                 Common::exec($ssh_conn, $cmd_alldata_2);
                 $cmd_join_alldata = 'sudo cat '.$alldata_file_1.' '.$alldata_file_2.' > '.$alldata_file.'; ';
                 Common::exec($ssh_conn, $cmd_join_alldata );
@@ -118,7 +131,7 @@ class indexController extends baseController {
             } else {
                 if (count($alldata_table_arr) > 0) {
                     $alldata_table_str = implode(" ", $alldata_table_arr);
-                    $cmd_alldata = 'sudo mysqldump -u'.$this->ssh_auth_user.' -p'.$db_pass.' --max_allowed_packet=1G '.$db_name.' '.$alldata_table_str.' > "'.$alldata_file.'"';
+                    $cmd_alldata = 'sudo mysqldump -u'.$auth_user.' -p'.$db_pass.' --max_allowed_packet=1G '.$db_name.' '.$alldata_table_str.' > "'.$alldata_file.'"';
                     Common::exec($ssh_conn, $cmd_alldata);
                     $flag1 = true;
                 }
@@ -128,10 +141,10 @@ class indexController extends baseController {
                 $nodata_table_str_1 = implode(" ", $nodata_table_arr[0]);
                 $nodata_table_str_2 = implode(" ", $nodata_table_arr[1]);
                 $nodata_file_1 = 'nodata1.txt';
-                $cmd_nodata_1 = 'sudo mysqldump -u'.$this->ssh_auth_user.' -p'.$db_pass.' --max_allowed_packet=1G --no-data '.$db_name.' '.$nodata_table_str_1.' > "'.$nodata_file_1.'"';
+                $cmd_nodata_1 = 'sudo mysqldump -u'.$auth_user.' -p'.$db_pass.' --max_allowed_packet=1G --no-data '.$db_name.' '.$nodata_table_str_1.' > "'.$nodata_file_1.'"';
                 Common::exec($ssh_conn, $cmd_nodata_1);
                 $nodata_file_2 = 'nodata2.txt';
-                $cmd_nodata_2 = 'sudo mysqldump -u'.$this->ssh_auth_user.' -p'.$db_pass.' --max_allowed_packet=1G --no-data '.$db_name.' '.$nodata_table_str_2.' > "'.$nodata_file_2.'"';
+                $cmd_nodata_2 = 'sudo mysqldump -u'.$auth_user.' -p'.$db_pass.' --max_allowed_packet=1G --no-data '.$db_name.' '.$nodata_table_str_2.' > "'.$nodata_file_2.'"';
                 Common::exec($ssh_conn, $cmd_nodata_2);
                 $cmd_join_nodata = 'sudo cat '.$nodata_file_1.' '.$nodata_file_2.' > '.$nodata_file.'; ';
                 $cmd_join_nodata .= 'sudo rm -rf '.$nodata_file_1.'; ';
@@ -141,7 +154,7 @@ class indexController extends baseController {
             } else {
                 if (count($nodata_table_arr) > 0) {
                     $nodata_table_str = implode(" ", $nodata_table_arr);
-                    $cmd_nodata = 'sudo mysqldump -u' . $this->ssh_auth_user . ' -p' . $db_pass . ' --max_allowed_packet=1G --no-data ' . $db_name . ' ' . $nodata_table_str . ' > "' . $nodata_file . '"';
+                    $cmd_nodata = 'sudo mysqldump -u' . $auth_user . ' -p' . $db_pass . ' --max_allowed_packet=1G --no-data ' . $db_name . ' ' . $nodata_table_str . ' > "' . $nodata_file . '"';
                     Common::exec($ssh_conn, $cmd_nodata);
                     $flag2 = true;
                 }
